@@ -22,6 +22,8 @@ export default function Home() {
   const [humanAnswer, setHumanAnswer] = useState('');
   const [matchCandidates, setMatchCandidates] = useState<any[]>([]);
   const [currentProject, setCurrentProject] = useState<any>(null);
+  const [outreachResults, setOutreachResults] = useState<{ id: string; name: string; role: string; status: string }[]>([]);
+  const [isSendingOutreach, setIsSendingOutreach] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Employee State
@@ -81,7 +83,7 @@ export default function Home() {
 
     setIsProcessing(true);
     setThoughtLog(prev => [...prev, '> Human input received.', '> Recalculating planning strategy...']);
-    
+
     try {
       const response = await fetch('/api/matchmaking', {
         method: 'POST',
@@ -129,15 +131,15 @@ export default function Home() {
       <nav className="border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <h2 className="font-bold text-xl tracking-tighter">Tacto Agent</h2>
+            <h2 className="font-bold text-xl tracking-tighter">Hackathon Munich Agent</h2>
             <div className="flex gap-4">
-              <button 
+              <button
                 onClick={() => setActiveView('PIPELINE')}
                 className={`text-sm font-medium transition-colors ${activeView === 'PIPELINE' ? 'text-blue-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
               >
                 RFQ Pipeline
               </button>
-              <button 
+              <button
                 onClick={() => setActiveView('EMPLOYEES')}
                 className={`text-sm font-medium transition-colors ${activeView === 'EMPLOYEES' ? 'text-blue-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
               >
@@ -172,17 +174,16 @@ export default function Home() {
                 {STAGES.map((stage, index) => {
                   const isActive = currentStage === stage.id;
                   const isCompleted = STAGES.findIndex(s => s.id === currentStage) > index;
-                  
+
                   return (
                     <div key={stage.id} className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-950 px-4">
-                      <div 
-                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                          isActive 
-                            ? 'border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20' 
-                            : isCompleted 
-                              ? 'border-green-500 bg-green-500 text-white' 
-                              : 'border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
-                        }`}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive
+                          ? 'border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20'
+                          : isCompleted
+                            ? 'border-green-500 bg-green-500 text-white'
+                            : 'border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
+                          }`}
                       >
                         {isCompleted ? '✓' : index + 1}
                       </div>
@@ -206,15 +207,15 @@ export default function Home() {
                     className="h-full"
                   >
                     {currentStage === 'INGESTION' && (
-                      <div 
+                      <div
                         onClick={() => fileInputRef.current?.click()}
                         className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/10 transition-all group"
                       >
-                        <input 
-                          type="file" 
-                          ref={fileInputRef} 
-                          className="hidden" 
-                          accept=".pdf,.txt" 
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept=".pdf,.txt"
                           onChange={handleFileUpload}
                         />
                         <div className="text-5xl mb-6 group-hover:scale-110 transition-transform">📄</div>
@@ -233,14 +234,14 @@ export default function Home() {
                         <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                           <h3 className="text-2xl font-bold">Agent Analysis: {currentProject?.name}</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                           <div className="lg:col-span-2 space-y-6">
                             <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-2xl">
                               <h4 className="font-semibold mb-4 text-zinc-500 uppercase text-[10px] tracking-widest">System Thought Log</h4>
                               <div className="space-y-2 font-mono text-sm h-64 overflow-y-auto">
                                 {thoughtLog.map((log, i) => (
-                                  <motion.p 
+                                  <motion.p
                                     key={i}
                                     initial={{ opacity: 0, x: -5 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -250,8 +251,8 @@ export default function Home() {
                                   </motion.p>
                                 ))}
                                 {isProcessing && (
-                                  <motion.span 
-                                    animate={{ opacity: [0, 1, 0] }} 
+                                  <motion.span
+                                    animate={{ opacity: [0, 1, 0] }}
                                     transition={{ repeat: Infinity, duration: 0.8 }}
                                     className="inline-block w-2 h-4 bg-zinc-600 ml-1 translate-y-1"
                                   />
@@ -263,7 +264,7 @@ export default function Home() {
                           <div className="space-y-6">
                             <AnimatePresence>
                               {clarification && (
-                                <motion.div 
+                                <motion.div
                                   initial={{ opacity: 0, scale: 0.95 }}
                                   animate={{ opacity: 1, scale: 1 }}
                                   className="border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900 p-6 rounded-2xl shadow-xl"
@@ -276,14 +277,14 @@ export default function Home() {
                                     {clarification}
                                   </p>
                                   <div className="space-y-3">
-                                    <input 
-                                      type="text" 
+                                    <input
+                                      type="text"
                                       value={humanAnswer}
                                       onChange={(e) => setHumanAnswer(e.target.value)}
                                       placeholder="Type your answer..."
                                       className="w-full bg-white dark:bg-zinc-900 border border-amber-300 dark:border-amber-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
                                     />
-                                    <button 
+                                    <button
                                       onClick={handleClarificationSubmit}
                                       disabled={isProcessing}
                                       className="w-full bg-amber-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
@@ -304,7 +305,7 @@ export default function Home() {
                         <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                           <h3 className="text-2xl font-bold">Matchmaking Results</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           {matchCandidates.map((candidate) => (
                             <div key={candidate.id} className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -324,11 +325,31 @@ export default function Home() {
                             </div>
                           ))}
                         </div>
-                        
+
                         <div className="pt-8 text-center">
-                          <button 
-                            onClick={() => setCurrentStage('OUTREACH')}
-                            className="bg-blue-600 text-white px-12 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all"
+                          <button
+                            onClick={async () => {
+                              if (!currentProject) return;
+                              setIsSendingOutreach(true);
+                              setCurrentStage('OUTREACH');
+                              try {
+                                const res = await fetch('/api/outreach', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ projectId: currentProject.id }),
+                                });
+                                const result = await res.json();
+                                if (result.status === 'success') {
+                                  setOutreachResults(result.data.notifications);
+                                }
+                              } catch (err) {
+                                console.error('Outreach failed:', err);
+                              } finally {
+                                setIsSendingOutreach(false);
+                              }
+                            }}
+                            disabled={isSendingOutreach}
+                            className="bg-blue-600 text-white px-12 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all disabled:opacity-50"
                           >
                             Finalize Team & Notify
                           </button>
@@ -337,19 +358,99 @@ export default function Home() {
                     )}
 
                     {currentStage === 'OUTREACH' && (
-                      <div className="flex flex-col items-center justify-center h-[400px] text-center">
-                        <div className="text-8xl mb-6">🚀</div>
-                        <h3 className="text-3xl font-bold mb-3">Outreach Started!</h3>
-                        <button 
-                          onClick={() => {
-                            setCurrentStage('INGESTION');
-                            setCurrentProject(null);
-                            setMatchCandidates([]);
-                          }}
-                          className="text-blue-500 font-medium hover:underline"
-                        >
-                          Process another RFQ
-                        </button>
+                      <div className="space-y-8">
+                        {isSendingOutreach ? (
+                          <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                              className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full mb-6"
+                            />
+                            <h3 className="text-2xl font-bold mb-2">Sending Notifications...</h3>
+                            <p className="text-zinc-500">Contacting team members via ntfy.sh</p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                              <h3 className="text-2xl font-bold">Outreach Complete</h3>
+                            </div>
+
+                            {/* Selected PM Card */}
+                            {currentProject?.selectedPM && (
+                              <div className="p-6 border-2 border-blue-200 dark:border-blue-800 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-xl">👔</div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-bold text-lg">{currentProject.selectedPM.name}</h4>
+                                      <span className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase">
+                                        Project Manager
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-zinc-500">{currentProject.selectedPM.role} &middot; {currentProject.selectedPM.email}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Project Summary */}
+                            <div className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50">
+                              <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-zinc-400">Project Summary</h4>
+                              <p className="font-semibold mb-3">{currentProject?.name}</p>
+                              <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {(currentProject?.requirements || []).slice(0, 5).map((req: string, i: number) => (
+                                  <p key={i} className="text-xs text-zinc-600 dark:text-zinc-400">• {req}</p>
+                                ))}
+                                {(currentProject?.requirements || []).length > 5 && (
+                                  <p className="text-xs text-zinc-400 italic">... and {currentProject.requirements.length - 5} more requirements</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Notification Status */}
+                            <div>
+                              <h4 className="font-bold mb-4 text-sm uppercase tracking-widest text-zinc-400">Notification Status</h4>
+                              <div className="space-y-2">
+                                {outreachResults.map((n) => (
+                                  <div
+                                    key={n.id}
+                                    className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-sm">
+                                        {n.role === 'Project Manager' ? '👔' : '👤'}
+                                      </div>
+                                      <div>
+                                        <p className="font-medium text-sm">{n.name}</p>
+                                        <p className="text-xs text-zinc-500">{n.role}</p>
+                                      </div>
+                                    </div>
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-lg ${n.status === 'sent'
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                      }`}>
+                                      {n.status === 'sent' ? '✓ Sent' : '✗ Failed'}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="pt-4 text-center">
+                              <button
+                                onClick={() => {
+                                  setCurrentStage('INGESTION');
+                                  setCurrentProject(null);
+                                  setMatchCandidates([]);
+                                  setOutreachResults([]);
+                                }}
+                                className="text-blue-500 font-medium hover:underline"
+                              >
+                                Process another RFQ
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </motion.div>
@@ -470,7 +571,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.firstName}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, firstName: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, firstName: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -479,7 +580,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.lastName}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, lastName: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, lastName: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -489,7 +590,7 @@ export default function Home() {
                           <input
                             type="email"
                             value={editingEmployee.email}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, email: e.target.value})}
+                            onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                           />
                         </div>
@@ -499,7 +600,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.location}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, location: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, location: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -508,7 +609,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.level}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, level: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, level: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -519,7 +620,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.role}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, role: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, role: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -528,7 +629,7 @@ export default function Home() {
                             <input
                               type="number"
                               value={editingEmployee.yearsOfExperience}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, yearsOfExperience: Number(e.target.value)})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, yearsOfExperience: Number(e.target.value) })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -538,7 +639,7 @@ export default function Home() {
                           <input
                             type="text"
                             value={(editingEmployee.skills || []).join(', ')}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                            onChange={(e) => setEditingEmployee({ ...editingEmployee, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                           />
                         </div>
@@ -547,7 +648,7 @@ export default function Home() {
                           <input
                             type="text"
                             value={(editingEmployee.certifications || []).join(', ')}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, certifications: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                            onChange={(e) => setEditingEmployee({ ...editingEmployee, certifications: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                           />
                         </div>
@@ -557,7 +658,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={(editingEmployee.pastIndustryExperience || []).join(', ')}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, pastIndustryExperience: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, pastIndustryExperience: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -566,7 +667,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={(editingEmployee.futureIndustryWish || []).join(', ')}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, futureIndustryWish: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, futureIndustryWish: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -576,7 +677,7 @@ export default function Home() {
                             <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Availability Status</label>
                             <select
                               value={editingEmployee.availabilityStatus}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, availabilityStatus: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, availabilityStatus: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             >
                               <option value="Available">Available</option>
@@ -589,7 +690,7 @@ export default function Home() {
                             <input
                               type="date"
                               value={editingEmployee.projectStart}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, projectStart: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, projectStart: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -598,7 +699,7 @@ export default function Home() {
                             <input
                               type="date"
                               value={editingEmployee.projectEnd}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, projectEnd: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, projectEnd: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -609,7 +710,7 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.cv}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, cv: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, cv: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
@@ -618,20 +719,20 @@ export default function Home() {
                             <input
                               type="text"
                               value={editingEmployee.linkedin}
-                              onChange={(e) => setEditingEmployee({...editingEmployee, linkedin: e.target.value})}
+                              onChange={(e) => setEditingEmployee({ ...editingEmployee, linkedin: e.target.value })}
                               className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                             />
                           </div>
                         </div>
                         <div className="flex gap-4 pt-4">
-                          <button 
+                          <button
                             type="button"
                             onClick={() => setEditingEmployee(null)}
                             className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-bold"
                           >
                             Cancel
                           </button>
-                          <button 
+                          <button
                             type="submit"
                             className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold"
                           >

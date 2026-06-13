@@ -1,17 +1,30 @@
 [
   {
     "id": "emp_001",
-    "email": "alice.smith@tacto.ai",
+    "email": "alice.smith@hackathon-munich.de",
     "firstName": "Alice",
     "lastName": "Smith",
     "location": "Munich, Germany",
     "role": "Senior Frontend Developer",
     "level": "Senior",
     "yearsOfExperience": 8,
-    "pastIndustryExperience": ["Automotive", "E-Commerce"],
-    "futureIndustryWish": ["Healthcare"],
-    "skills": ["React", "TypeScript", "Tailwind CSS", "Framer Motion", "Next.js"],
-    "certifications": ["AWS Certified Developer"],
+    "pastIndustryExperience": [
+      "Automotive",
+      "E-Commerce"
+    ],
+    "futureIndustryWish": [
+      "Healthcare"
+    ],
+    "skills": [
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Framer Motion",
+      "Next.js"
+    ],
+    "certifications": [
+      "AWS Certified Developer"
+    ],
     "availabilityStatus": "Available",
     "projectStart": "2024-01-15",
     "projectEnd": "2024-12-31",
@@ -20,17 +33,31 @@
   },
   {
     "id": "emp_002",
-    "email": "bob.johnson@tacto.ai",
+    "email": "bob.johnson@hackathon-munich.de",
     "firstName": "Bob",
     "lastName": "Johnson",
     "location": "Berlin, Germany",
     "role": "Solutions Architect",
     "level": "Principal",
     "yearsOfExperience": 12,
-    "pastIndustryExperience": ["Manufacturing", "Logistics"],
-    "futureIndustryWish": ["Energy"],
-    "skills": ["AWS", "System Design", "Node.js", "Docker", "Kubernetes"],
-    "certifications": ["AWS Solutions Architect Professional", "CKA"],
+    "pastIndustryExperience": [
+      "Manufacturing",
+      "Logistics"
+    ],
+    "futureIndustryWish": [
+      "Energy"
+    ],
+    "skills": [
+      "AWS",
+      "System Design",
+      "Node.js",
+      "Docker",
+      "Kubernetes"
+    ],
+    "certifications": [
+      "AWS Solutions Architect Professional",
+      "CKA"
+    ],
     "availabilityStatus": "Available",
     "projectStart": "2023-06-01",
     "projectEnd": "2025-06-01",
@@ -39,16 +66,27 @@
   },
   {
     "id": "emp_003",
-    "email": "charlie.davis@tacto.ai",
+    "email": "charlie.davis@hackathon-munich.de",
     "firstName": "Charlie",
     "lastName": "Davis",
     "location": "Hamburg, Germany",
     "role": "Full Stack Engineer",
     "level": "Mid",
     "yearsOfExperience": 5,
-    "pastIndustryExperience": ["FinTech"],
-    "futureIndustryWish": ["Automotive", "Aerospace"],
-    "skills": ["React", "Node.js", "PostgreSQL", "GraphQL", "TypeScript"],
+    "pastIndustryExperience": [
+      "FinTech"
+    ],
+    "futureIndustryWish": [
+      "Automotive",
+      "Aerospace"
+    ],
+    "skills": [
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "GraphQL",
+      "TypeScript"
+    ],
     "certifications": [],
     "availabilityStatus": "On Project",
     "projectStart": "2024-03-01",
@@ -58,17 +96,30 @@
   },
   {
     "id": "emp_004",
-    "email": "diana.prince@tacto.ai",
+    "email": "diana.prince@hackathon-munich.de",
     "firstName": "Diana",
     "lastName": "Prince",
     "location": "Vienna, Austria",
     "role": "UI/UX Designer",
     "level": "Senior",
     "yearsOfExperience": 6,
-    "pastIndustryExperience": ["Retail", "Automotive"],
-    "futureIndustryWish": ["Healthcare"],
-    "skills": ["Figma", "Adobe XD", "CSS", "Accessibility", "Prototyping"],
-    "certifications": ["Certified Usability Analyst"],
+    "pastIndustryExperience": [
+      "Retail",
+      "Automotive"
+    ],
+    "futureIndustryWish": [
+      "Healthcare"
+    ],
+    "skills": [
+      "Figma",
+      "Adobe XD",
+      "CSS",
+      "Accessibility",
+      "Prototyping"
+    ],
+    "certifications": [
+      "Certified Usability Analyst"
+    ],
     "availabilityStatus": "Available",
     "projectStart": "2024-02-01",
     "projectEnd": "2024-08-01",
@@ -77,17 +128,30 @@
   },
   {
     "id": "emp_005",
-    "email": "ethan.hunt@tacto.ai",
+    "email": "ethan.hunt@hackathon-munich.de",
     "firstName": "Ethan",
     "lastName": "Hunt",
     "location": "Zurich, Switzerland",
     "role": "DevOps Engineer",
     "level": "Senior",
     "yearsOfExperience": 7,
-    "pastIndustryExperience": ["Telecommunications"],
-    "futureIndustryWish": ["Energy", "Manufacturing"],
-    "skills": ["Terraform", "CI/CD", "Azure", "Python", "Monitoring"],
-    "certifications": ["Azure DevOps Engineer Expert"],
+    "pastIndustryExperience": [
+      "Telecommunications"
+    ],
+    "futureIndustryWish": [
+      "Energy",
+      "Manufacturing"
+    ],
+    "skills": [
+      "Terraform",
+      "CI/CD",
+      "Azure",
+      "Python",
+      "Monitoring"
+    ],
+    "certifications": [
+      "Azure DevOps Engineer Expert"
+    ],
     "availabilityStatus": "On Project",
     "projectStart": "2024-01-01",
     "projectEnd": "2024-12-31",
@@ -96,21 +160,68 @@
   },
   {
     "id": "emp_006",
-    "email": "fiona.gallagher@tacto.ai",
+    "email": "fiona.gallagher@hackathon-munich.de",
     "firstName": "Fiona",
     "lastName": "Gallagher",
     "location": "Munich, Germany",
     "role": "Backend Specialist",
     "level": "Senior",
     "yearsOfExperience": 9,
-    "pastIndustryExperience": ["Gaming", "FinTech"],
-    "futureIndustryWish": ["Automotive"],
-    "skills": ["Go", "Microservices", "Redis", "gRPC", "SQL"],
+    "pastIndustryExperience": [
+      "Gaming",
+      "FinTech"
+    ],
+    "futureIndustryWish": [
+      "Automotive"
+    ],
+    "skills": [
+      "Go",
+      "Microservices",
+      "Redis",
+      "gRPC",
+      "SQL"
+    ],
     "certifications": [],
     "availabilityStatus": "Available",
     "projectStart": "2024-04-01",
     "projectEnd": "2025-04-01",
     "cv": "",
     "linkedin": "https://linkedin.com/in/fionagallagher"
+  },
+  {
+    "id": "emp_007",
+    "email": "georg.mueller@hackathon-munich.de",
+    "firstName": "Georg",
+    "lastName": "Müller",
+    "location": "Munich, Germany",
+    "role": "Project Manager",
+    "level": "Senior",
+    "yearsOfExperience": 10,
+    "pastIndustryExperience": [
+      "Manufacturing",
+      "Automotive",
+      "Energy"
+    ],
+    "futureIndustryWish": [
+      "Aerospace"
+    ],
+    "skills": [
+      "Stakeholder Management",
+      "Agile",
+      "PRINCE2",
+      "Risk Management",
+      "Budgeting",
+      "JIRA"
+    ],
+    "certifications": [
+      "PMP",
+      "PRINCE2 Practitioner",
+      "Scrum Master"
+    ],
+    "availabilityStatus": "Available",
+    "projectStart": "2024-01-01",
+    "projectEnd": "2025-12-31",
+    "cv": "",
+    "linkedin": "https://linkedin.com/in/georgmueller"
   }
 ]

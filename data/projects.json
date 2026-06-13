@@ -121,5 +121,105 @@
     "createdAt": "2026-06-13T14:54:50.845Z",
     "updatedAt": "2026-06-13T14:56:51.330Z",
     "humanAnswer": "It is ok"
+  },
+  {
+    "id": "0398a19b-d237-4818-b7e1-37c3657007d6",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Existing Switchgear Inventory: Conduct a detailed inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Measuring Point and Drive List Creation: Develop a comprehensive list of all measuring points and drives within the plant.",
+      "REQ-003 [HIGH*] NSV Renewal Planning: Plan the renewal of low-voltage distribution systems for specific sections: screens/inlet, primary clarification, BioP, sludge treatment, biology, secondary clarification, and filtration.",
+      "REQ-004 [HIGH*] Sub-distribution & Control Cabinet Renewal Planning: Plan the renewal of sub-distribution boards and control cabinets for the sand washer, grit chamber, and five building services cabinets.",
+      "REQ-005 [HIGH*] Automation Technology Renewal Planning: Plan the renewal of the overall automation technology.",
+      "REQ-006 [HIGH*] Process Control System Adaptation: Adapt the existing process control system to integrate new automation technology.",
+      "REQ-007 [HIGH*] Main PLC Renewal Planning: Plan the renewal of the main PLC (Kopf SPS) located in the low-voltage main distribution system (NSHV).",
+      "REQ-008 [HIGH*] Cable Infrastructure Planning: Plan the partial renewal of the cable system and the expansion of cable trays.",
+      "REQ-009 [HIGH*] Operating Cost Analysis: Determine the operating costs associated with the renewed infrastructure during the planning phase.",
+      "REQ-010 [HIGH*] Demand Assessment: Conduct a demand assessment related to the renewal measure during the planning phase.",
+      "REQ-011 [HIGH*] Power Consumption Analysis: Analyze the power consumption implications of the renewal measure during the planning phase.",
+      "REQ-012 [HIGH*] Quality Control Institute Certification: Provide an AVPQ-Nummer or equivalent certification from quality control institutes.",
+      "REQ-013 [HIGH*] Average Annual Workforce: Demonstrate the average annual workforce size (including management) over the last 3 years.",
+      "REQ-014 [HIGH*] Professional Liability Insurance Coverage: Maintain a valid professional liability insurance with a minimum coverage of 3.0 Mio. EUR for personal injury, property damage, and financial losses, covering at least 2 claims per year. Coverage must extend to subcontractors.",
+      "REQ-015 [HIGH*] Comparable Project References: Provide references for comparable projects from the last 3 years, including service type, contract sum, execution period, and client contact.",
+      "REQ-016 [HIGH*] Proof of Tax and Social Security Payments: Provide proof of paid taxes, duties, and social security contributions.",
+      "REQ-017 [HIGH*] Specific Annual Turnover: Demonstrate specific annual turnover for services over the last 3 years.",
+      "REQ-018 [HIGH*] Relevant Educational and Professional Qualifications: Provide a list of relevant educational and professional qualifications of personnel (Table 2026-03-25_Vorlage Personal).",
+      "REQ-019 [HIGH*] Compliance with Tariftreue- und Vergabegesetz NRW: The contractor must comply with the principles of the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1-4 TVgG NRW) and ensure compliance by all subcontractors. The client has the right to control and audit this compliance.",
+      "REQ-020 [HIGH*] Electronic Communication and Submission: All communication and submission of documents must be exclusively electronic via the Vergabeportal der Wirtschaftsregion Aachen.",
+      "REQ-021 [HIGH*] Electronic Financial Transactions: Electronic invoicing, electronic orders, and electronic payments are required.",
+      "REQ-022 [HIGH*] Declaration of No Exclusion Reasons: Declare that no severe misconduct according to §§123, 124 GWB has been committed and no exclusion reason according to § 22 LkSG (Lieferkettensorgfaltspflichtengesetz) exists.",
+      "REQ-023 [HIGH*] Compliance with VOL/B: The contract execution must comply with VOL/B (Vergabe- und Vertragsordnung für Leistungen – Teil B) and additional contract conditions."
+    ],
+    "clarificationQuestion": "Strict electronic communication and submission requirements; no paper submissions or alternative channels are permitted, requiring robust digital infrastructure.",
+    "matchCandidates": [
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 35,
+        "reason": "As a Solutions Architect with system design expertise and manufacturing industry experience, Bob is the most suitable candidate for the planning and architectural aspects of the automation and control system renewal, despite lacking direct industrial control system experience.",
+        "skills": [
+          "System Design"
+        ]
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 10,
+        "reason": "While his DevOps skills like monitoring and Python could offer minor tangential support in a modern industrial environment, his core expertise does not align with the electrical and automation system renewal requirements.",
+        "skills": [
+          "Python",
+          "Monitoring"
+        ]
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 5,
+        "reason": "Alice's expertise in frontend web development is not directly relevant to the industrial automation, electrical system, or process control renewal requirements of this project.",
+        "skills": []
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 5,
+        "reason": "Charlie's full-stack web development skills are not directly relevant to the industrial automation, electrical system, or process control renewal requirements of this project.",
+        "skills": []
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 5,
+        "reason": "Diana's UI/UX design skills are not directly relevant to the core technical requirements of planning and renewing industrial automation and electrical systems.",
+        "skills": []
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 5,
+        "reason": "Fiona's backend software development expertise is not directly relevant to the industrial automation, electrical system, or process control renewal requirements of this project.",
+        "skills": []
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Delegating analysis of 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf to Gemini 1.5 Pro...",
+      "> Model is parsing document natively...",
+      "> Found critical ambiguity requiring human input.",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-13T16:29:41.863Z",
+    "updatedAt": "2026-06-13T16:30:38.479Z",
+    "humanAnswer": "Das ist okay"
   }
 ]

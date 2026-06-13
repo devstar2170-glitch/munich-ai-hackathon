@@ -13,6 +13,7 @@ export interface ProjectState {
   clarificationQuestion?: string;
   humanAnswer?: string;
   matchCandidates: any[];
+  selectedPM?: { id: string; name: string; email: string; role: string };
   thoughtLog: string[];
   createdAt: string;
   updatedAt: string;
