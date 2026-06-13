@@ -371,70 +371,257 @@ export default function Home() {
                 </div>
               </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {employees.map((emp) => (
-                  <div key={emp.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-xl">👤</div>
-                      <button 
-                        onClick={() => setEditingEmployee(emp)}
-                        className="text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded-lg transition-colors"
-                      >
-                        Edit Profile
-                      </button>
-                    </div>
-                    <h3 className="text-lg font-bold mb-1">{emp.name}</h3>
-                    <p className="text-sm text-zinc-500 mb-4">{emp.role}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {emp.skills.map((s: string) => (
-                        <span key={s} className="bg-zinc-50 dark:bg-zinc-950 text-[10px] px-2 py-1 rounded border border-zinc-100 dark:border-zinc-800 font-medium">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-xs text-zinc-500 line-clamp-3 leading-relaxed">
-                      {emp.bio}
-                    </p>
-                  </div>
-                ))}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-x-auto">
+                <table className="w-full text-sm whitespace-nowrap">
+                  <thead>
+                    <tr className="border-b border-zinc-100 dark:border-zinc-800 text-left text-[10px] uppercase tracking-widest text-zinc-400">
+                      <th className="px-4 py-3 font-bold">Employee Id</th>
+                      <th className="px-4 py-3 font-bold">Email</th>
+                      <th className="px-4 py-3 font-bold">First Name</th>
+                      <th className="px-4 py-3 font-bold">Last Name</th>
+                      <th className="px-4 py-3 font-bold">Location</th>
+                      <th className="px-4 py-3 font-bold">Role</th>
+                      <th className="px-4 py-3 font-bold">Level</th>
+                      <th className="px-4 py-3 font-bold">Years Of Experience</th>
+                      <th className="px-4 py-3 font-bold">Past Industry Experience</th>
+                      <th className="px-4 py-3 font-bold">Future Industry Wish</th>
+                      <th className="px-4 py-3 font-bold">Skills</th>
+                      <th className="px-4 py-3 font-bold">Certifications</th>
+                      <th className="px-4 py-3 font-bold">Availability Status</th>
+                      <th className="px-4 py-3 font-bold">Project Start</th>
+                      <th className="px-4 py-3 font-bold">Project End</th>
+                      <th className="px-4 py-3 font-bold">CV</th>
+                      <th className="px-4 py-3 font-bold">LinkedIn</th>
+                      <th className="px-4 py-3 font-bold"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map((emp) => (
+                      <tr key={emp.id} className="border-b border-zinc-50 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+                        <td className="px-4 py-3 font-mono text-xs text-zinc-400">{emp.id}</td>
+                        <td className="px-4 py-3">{emp.email}</td>
+                        <td className="px-4 py-3 font-medium">{emp.firstName}</td>
+                        <td className="px-4 py-3 font-medium">{emp.lastName}</td>
+                        <td className="px-4 py-3">{emp.location}</td>
+                        <td className="px-4 py-3">{emp.role}</td>
+                        <td className="px-4 py-3">{emp.level}</td>
+                        <td className="px-4 py-3">{emp.yearsOfExperience}</td>
+                        <td className="px-4 py-3">{(emp.pastIndustryExperience || []).join(', ')}</td>
+                        <td className="px-4 py-3">{(emp.futureIndustryWish || []).join(', ')}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1 max-w-xs">
+                            {(emp.skills || []).map((s: string) => (
+                              <span key={s} className="bg-zinc-50 dark:bg-zinc-950 text-[10px] px-2 py-0.5 rounded border border-zinc-100 dark:border-zinc-800 font-medium whitespace-nowrap">
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">{(emp.certifications || []).join(', ')}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${emp.availabilityStatus === 'Available' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {emp.availabilityStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">{emp.projectStart}</td>
+                        <td className="px-4 py-3">{emp.projectEnd}</td>
+                        <td className="px-4 py-3">
+                          {emp.cv ? (
+                            <a href={emp.cv} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View CV</a>
+                          ) : (
+                            <span className="text-zinc-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {emp.linkedin ? (
+                            <a href={emp.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Profile</a>
+                          ) : (
+                            <span className="text-zinc-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => setEditingEmployee(emp)}
+                            className="text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded-lg transition-colors"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
               {/* Edit Modal */}
               <AnimatePresence>
                 {editingEmployee && (
                   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <motion.div 
+                    <motion.div
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className="bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-zinc-200 dark:border-zinc-800"
+                      className="bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-2xl w-full shadow-2xl border border-zinc-200 dark:border-zinc-800 max-h-[85vh] overflow-y-auto"
                     >
                       <h3 className="text-2xl font-bold mb-6">Edit Employee Profile</h3>
                       <form onSubmit={handleUpdateEmployee} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">First Name</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.firstName}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, firstName: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Last Name</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.lastName}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, lastName: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                        </div>
                         <div>
-                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Full Name</label>
-                          <input 
-                            type="text" 
-                            value={editingEmployee.name}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, name: e.target.value})}
+                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Email</label>
+                          <input
+                            type="email"
+                            value={editingEmployee.email}
+                            onChange={(e) => setEditingEmployee({...editingEmployee, email: e.target.value})}
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Location</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.location}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, location: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Level</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.level}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, level: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Role</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.role}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, role: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Years Of Experience</label>
+                            <input
+                              type="number"
+                              value={editingEmployee.yearsOfExperience}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, yearsOfExperience: Number(e.target.value)})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Skills (comma separated)</label>
+                          <input
+                            type="text"
+                            value={(editingEmployee.skills || []).join(', ')}
+                            onChange={(e) => setEditingEmployee({...editingEmployee, skills: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Role</label>
-                          <input 
-                            type="text" 
-                            value={editingEmployee.role}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, role: e.target.value})}
+                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Certifications (comma separated)</label>
+                          <input
+                            type="text"
+                            value={(editingEmployee.certifications || []).join(', ')}
+                            onChange={(e) => setEditingEmployee({...editingEmployee, certifications: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
                           />
                         </div>
-                        <div>
-                          <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Bio</label>
-                          <textarea 
-                            value={editingEmployee.bio}
-                            onChange={(e) => setEditingEmployee({...editingEmployee, bio: e.target.value})}
-                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm min-h-[100px]"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Past Industry Experience (comma separated)</label>
+                            <input
+                              type="text"
+                              value={(editingEmployee.pastIndustryExperience || []).join(', ')}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, pastIndustryExperience: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Future Industry Wish (comma separated)</label>
+                            <input
+                              type="text"
+                              value={(editingEmployee.futureIndustryWish || []).join(', ')}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, futureIndustryWish: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean)})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Availability Status</label>
+                            <select
+                              value={editingEmployee.availabilityStatus}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, availabilityStatus: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            >
+                              <option value="Available">Available</option>
+                              <option value="On Project">On Project</option>
+                              <option value="Unavailable">Unavailable</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Project Start</label>
+                            <input
+                              type="date"
+                              value={editingEmployee.projectStart}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, projectStart: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">Project End</label>
+                            <input
+                              type="date"
+                              value={editingEmployee.projectEnd}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, projectEnd: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">CV URL</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.cv}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, cv: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1 block">LinkedIn URL</label>
+                            <input
+                              type="text"
+                              value={editingEmployee.linkedin}
+                              onChange={(e) => setEditingEmployee({...editingEmployee, linkedin: e.target.value})}
+                              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm"
+                            />
+                          </div>
                         </div>
                         <div className="flex gap-4 pt-4">
                           <button 
