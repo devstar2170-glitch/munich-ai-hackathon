@@ -12,7 +12,7 @@
 │                          │                              │
 │              ┌───────────▼────────────┐                 │
 │              │   RFP ANALYSIS AGENT   │  ← YOU ARE HERE │
-│              │   (Gemini 2.0 Flash)   │                 │
+│              │   (Gemini 2.5 Flash)   │                 │
 │              │                        │                 │
 │              │  • Requirements        │                 │
 │              │  • Skills Matrix       │                 │
@@ -55,7 +55,7 @@ Chunker (if doc > 700K chars)
 
    │
    ▼
-Gemini 2.0 Flash (structured output, JSON schema constrained)
+Gemini 2.5 Flash (structured output, JSON schema constrained)
    │
    ├── Requirements Extractor
    │     → id, category, priority, is_mandatory
@@ -78,7 +78,7 @@ Gemini 2.0 Flash (structured output, JSON schema constrained)
    │     → ambiguities, unusual clauses
    │
    └── Compliance Norm Extractor
-         → ISO, GDPR, SOC2, industry-specific norms
+         → VDE, DIN, IEC, VDI, VOB/A norms
 
    │
    ▼
@@ -96,27 +96,16 @@ The `skills_required` field is the primary handoff to the Planning Agent:
 {
   "skills_required": [
     {
-      "skill": "AWS EKS",
+      "skill": "SPS-Programmierung Siemens TIA Portal",
       "category": "technical",
       "proficiency_level": "senior",
       "quantity_needed": 2,
-      "context": "Required for deploying containerized services per REQ-004",
+      "context": "Required for Leittechnik automation per REQ-004",
       "related_requirement_ids": ["REQ-004", "REQ-007"]
-    },
-    {
-      "skill": "ISO 27001 Auditing",
-      "category": "certification",
-      "proficiency_level": "expert",
-      "quantity_needed": 1,
-      "context": "Client requires ISO 27001 compliance audit before go-live",
-      "related_requirement_ids": ["REQ-012"]
     }
   ]
 }
 ```
-
-The Planning Agent matches these against the internal employee skills database
-to build the optimal team composition for the bid.
 
 ## Setup
 
@@ -140,7 +129,7 @@ python main.py rfp.pdf --output analysis.json --planning-output planning_payload
 ```python
 from rfp_agent import RFPAnalysisAgent
 
-agent = RFPAnalysisAgent(api_key="...", model="gemini-2.0-flash")
+agent = RFPAnalysisAgent(api_key="...", model="gemini-2.5-flash")
 
 # Analyze a file
 analysis = agent.analyze_file("rfp.pdf")
