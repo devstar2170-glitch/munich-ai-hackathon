@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { v4 as uuidv4 } from 'uuid';
 
 type Stage = 'INGESTION' | 'ANALYSIS' | 'PLANNING' | 'OUTREACH';
 type View = 'PIPELINE' | 'EMPLOYEES';
@@ -29,6 +30,11 @@ export default function Home() {
   // Employee State
   const [employees, setEmployees] = useState<any[]>([]);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [isUploadingCV, setIsUploadingCV] = useState(false);
+  const [cvUploadError, setCvUploadError] = useState<string | null>(null);
+  const [cvResolution, setCvResolution] = useState<any>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string>('new');
+  const cvInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -123,6 +129,108 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Failed to update employee');
+    }
+  };
+
+  const buildNewEmployee = (extracted: any, cvUrl: string) => ({
+    id: uuidv4(),
+    email: extracted.email || '',
+    firstName: extracted.firstName || '',
+    lastName: extracted.lastName || '',
+    location: extracted.location || '',
+    role: extracted.role || '',
+    level: extracted.level || '',
+    yearsOfExperience: extracted.yearsOfExperience ?? 0,
+    pastIndustryExperience: extracted.pastIndustryExperience || [],
+    futureIndustryWish: [],
+    skills: extracted.skills || [],
+    certifications: extracted.certifications || [],
+    availabilityStatus: 'Available',
+    projectStart: '',
+    projectEnd: '',
+    cv: cvUrl,
+    linkedin: extracted.linkedin || '',
+  });
+
+  const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCV(true);
+    setCvUploadError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/employees/extract', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await res.json();
+
+      if (result.status !== 'success') {
+        throw new Error(result.error || 'Extraction failed');
+      }
+
+      const { extracted, cvUrl, matches } = result.data;
+
+      if (!matches || matches.length === 0) {
+        const newEmployee = buildNewEmployee(extracted, cvUrl);
+        await fetch(`/api/employees/${newEmployee.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newEmployee),
+        });
+        await fetchEmployees();
+      } else {
+        setSelectedMatchId('new');
+        setCvResolution({ extracted, cvUrl, matches });
+      }
+    } catch (err) {
+      console.error('Failed to extract CV', err);
+      setCvUploadError('Failed to extract CV. Please try again.');
+    } finally {
+      setIsUploadingCV(false);
+      if (cvInputRef.current) cvInputRef.current.value = '';
+    }
+  };
+
+  const handleResolveCV = async () => {
+    if (!cvResolution) return;
+    const { extracted, cvUrl, matches } = cvResolution;
+
+    let employee;
+    if (selectedMatchId === 'new') {
+      employee = buildNewEmployee(extracted, cvUrl);
+    } else {
+      const existing = matches.find((m: any) => m.id === selectedMatchId);
+      employee = {
+        ...existing,
+        email: extracted.email || existing.email,
+        location: extracted.location || existing.location,
+        role: extracted.role || existing.role,
+        level: extracted.level || existing.level,
+        yearsOfExperience: extracted.yearsOfExperience ?? existing.yearsOfExperience,
+        pastIndustryExperience: extracted.pastIndustryExperience?.length ? extracted.pastIndustryExperience : existing.pastIndustryExperience,
+        skills: extracted.skills?.length ? extracted.skills : existing.skills,
+        certifications: extracted.certifications?.length ? extracted.certifications : existing.certifications,
+        linkedin: extracted.linkedin || existing.linkedin,
+        cv: cvUrl,
+      };
+    }
+
+    try {
+      await fetch(`/api/employees/${employee.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(employee),
+      });
+      await fetchEmployees();
+    } catch (err) {
+      console.error('Failed to save employee', err);
+    } finally {
+      setCvResolution(null);
     }
   };
 
@@ -470,6 +578,25 @@ export default function Home() {
                   <h1 className="text-4xl font-bold tracking-tight mb-2">Employee Database</h1>
                   <p className="text-zinc-500 dark:text-zinc-400 text-lg">Manage profiles used for matchmaking.</p>
                 </div>
+                <div className="flex flex-col items-end gap-2">
+                  <input
+                    type="file"
+                    ref={cvInputRef}
+                    className="hidden"
+                    accept=".pdf"
+                    onChange={handleCVUpload}
+                  />
+                  <button
+                    onClick={() => cvInputRef.current?.click()}
+                    disabled={isUploadingCV}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-600/20"
+                  >
+                    {isUploadingCV ? 'Extracting CV...' : '+ Upload CV'}
+                  </button>
+                  {cvUploadError && (
+                    <p className="text-xs text-red-500">{cvUploadError}</p>
+                  )}
+                </div>
               </header>
 
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-x-auto">
@@ -740,6 +867,76 @@ export default function Home() {
                           </button>
                         </div>
                       </form>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* CV Duplicate Resolution Modal */}
+              <AnimatePresence>
+                {cvResolution && (
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-zinc-200 dark:border-zinc-800"
+                    >
+                      <h3 className="text-2xl font-bold mb-2">Possible Duplicate Found</h3>
+                      <p className="text-sm text-zinc-500 mb-6">
+                        We found existing employee(s) named{' '}
+                        <span className="font-bold">{cvResolution.extracted.firstName} {cvResolution.extracted.lastName}</span>.
+                        Choose whether to update one of them or add this CV as a new employee.
+                      </p>
+
+                      <div className="space-y-3 mb-6">
+                        {cvResolution.matches.map((m: any) => (
+                          <label
+                            key={m.id}
+                            className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${selectedMatchId === m.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-800'}`}
+                          >
+                            <input
+                              type="radio"
+                              name="cv-resolution"
+                              value={m.id}
+                              checked={selectedMatchId === m.id}
+                              onChange={() => setSelectedMatchId(m.id)}
+                            />
+                            <div>
+                              <p className="font-bold text-sm">{m.firstName} {m.lastName}</p>
+                              <p className="text-xs text-zinc-500">{m.role} · {m.email}</p>
+                            </div>
+                          </label>
+                        ))}
+                        <label
+                          className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${selectedMatchId === 'new' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-800'}`}
+                        >
+                          <input
+                            type="radio"
+                            name="cv-resolution"
+                            value="new"
+                            checked={selectedMatchId === 'new'}
+                            onChange={() => setSelectedMatchId('new')}
+                          />
+                          <p className="font-bold text-sm">Add as new employee</p>
+                        </label>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setCvResolution(null)}
+                          className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-bold"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResolveCV}
+                          className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold"
+                        >
+                          Confirm
+                        </button>
+                      </div>
                     </motion.div>
                   </div>
                 )}

@@ -18,6 +18,25 @@ export async function analyzeRFQ(fileBuffer: Buffer, mimeType: string, fileName 
   return res.json();
 }
 
+export async function extractCV(fileBuffer: Buffer, mimeType: string, fileName = 'cv.pdf') {
+  const formData = new FormData();
+  const blob = new Blob([fileBuffer], { type: mimeType });
+  formData.append('file', blob, fileName);
+
+  const res = await fetch(`${AGENT_API}/api/extract-cv`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Agent API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.data;
+}
+
 export async function matchEmployees(requirements: string[], employees: object[], humanAnswer?: string) {
   const res = await fetch(`${AGENT_API}/api/match`, {
     method: 'POST',
