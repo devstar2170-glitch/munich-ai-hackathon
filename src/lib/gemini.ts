@@ -1,69 +1,35 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+const AGENT_API = process.env.NEXT_PUBLIC_AGENT_API_URL || 'http://localhost:8000';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+export async function analyzeRFQ(fileBuffer: Buffer, mimeType: string, fileName = 'rfp.pdf') {
+  const formData = new FormData();
+  const blob = new Blob([fileBuffer], { type: mimeType });
+  formData.append('file', blob, fileName);
 
-export const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const res = await fetch(`${AGENT_API}/api/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
 
-export async function analyzeRFQ(fileBuffer: Buffer, mimeType: string) {
-  const prompt = `
-    Analyze this RFQ (Request for Quotation) document.
-    Please:
-    1. Extract the key technical requirements and objectives.
-    2. Identify exactly one critical ambiguity or missing piece of information that requires human clarification.
-    3. Suggest the ideal skillsets (e.g., specific frameworks, years of experience, certifications) needed for a team to succeed.
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Agent API error: ${res.status}`);
+  }
 
-    Format your entire response as a raw JSON object with these keys:
-    {
-      "requirements": ["string"],
-      "ambiguity": "string",
-      "suggestedSkills": ["string"]
-    }
-  `;
-
-  const result = await model.generateContent([
-    prompt,
-    {
-      inlineData: {
-        data: fileBuffer.toString("base64"),
-        mimeType: mimeType
-      }
-    }
-  ]);
-  
-  const response = await result.response;
-  const text = response.text().replace(/```json|```/g, "").trim();
-  return JSON.parse(text);
+  return res.json();
 }
 
-export async function matchEmployees(requirements: string[], employees: any[]) {
-  const prompt = `
-    Based on these technical requirements:
-    ${requirements.join(", ")}
+export async function matchEmployees(requirements: string[], employees: object[], humanAnswer?: string) {
+  const res = await fetch(`${AGENT_API}/api/match`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requirements, employees, human_answer: humanAnswer }),
+  });
 
-    Rank these employees based on their fit for the project:
-    ${JSON.stringify(employees, null, 2)}
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Agent API error: ${res.status}`);
+  }
 
-    For each employee, provide:
-    1. A match score (0-100).
-    2. A brief reason for the score.
-    3. The key skills they contribute.
-
-    Format the response as a JSON array of objects:
-    [
-      {
-        "id": "string",
-        "name": "string",
-        "role": "string",
-        "match": number,
-        "reason": "string",
-        "skills": ["string"]
-      }
-    ]
-    Sort by match score descending.
-  `;
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text().replace(/```json|```/g, "").trim();
-  return JSON.parse(text);
+  const data = await res.json();
+  return data.matches;
 }
