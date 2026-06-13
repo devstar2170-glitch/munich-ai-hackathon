@@ -30,12 +30,22 @@ const EMPLOYEES_FILE = path.join(DATA_DIR, 'employees.json');
 
 export interface Employee {
   id: string;
-  name: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  location: string;
   role: string;
+  level: string;
+  yearsOfExperience: number;
+  pastIndustryExperience: string[];
+  futureIndustryWish: string[];
   skills: string[];
-  experience: string;
-  bio: string;
-  availability: boolean;
+  certifications: string[];
+  availabilityStatus: string;
+  projectStart: string;
+  projectEnd: string;
+  cv: string;
+  linkedin: string;
 }
 
 export async function getAllEmployees(): Promise<Employee[]> {
