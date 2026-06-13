@@ -107,6 +107,128 @@ RFP DOCUMENT:
 """
 
 
+ANALYSIS_PROMPT_A = """Analyze the following RFP/tender document.
+
+The document may be in any language. Your output must be in English.
+
+Extract ONLY the following:
+
+### 1. DOCUMENT METADATA
+- Title of the RFP/tender
+- Client/issuing organization name
+- 2-3 sentence executive summary of what is being asked for
+- Detailed project scope description
+- Submission deadline
+- Project duration
+- Estimated team size (if mentioned or implied)
+- Budget constraints or pricing information (if mentioned)
+
+### 2. ALL REQUIREMENTS
+For every requirement found (explicit or implied):
+- Unique ID: REQ-001, REQ-002, ...
+- Category: functional | technical | operational | compliance | financial | resource
+- Title and description
+- Priority: high | medium | low
+- Mandatory (must / shall / required / is to be) or Optional (should / may / desirable)
+- ALL specific skills/expertise needed to deliver it
+  → Be granular: "Siemens TIA Portal v17 PLC programming" not "automation"
+  → "OCPP 2.0.1 EV charging infrastructure" not "EV charging"
+  → "medium-voltage switchgear type SF6" not "electrical engineering"
+- Section reference in the original document
+
+### 3. KEY EVALUATION CRITERIA
+How the client will evaluate and score proposals.
+
+Return JSON matching the schema. No commentary outside JSON.
+
+---
+
+RFP DOCUMENT:
+
+{rfp_content}
+"""
+
+
+ANALYSIS_PROMPT_B = """Analyze the following RFP/tender document.
+
+The document may be in any language. Your output must be in English.
+
+Extract ONLY the following:
+
+### 1. SKILLS MATRIX (used for employee matching — be exhaustive)
+Consolidate ALL skills across all requirements into a deduplicated matrix:
+- Exact skill name (technology, system, standard, certification)
+- Category: technical | domain | certification | soft_skill | language
+- Proficiency level: junior | mid | senior | expert
+- Estimated number of people needed with this skill
+- Why this skill is needed and in what context
+- Which requirement IDs depend on this skill (REQ-001 etc.)
+
+### 2. DEADLINES & MILESTONES
+- Submission deadline and method
+- Project start and end dates
+- All intermediate milestones and phases
+- Q&A / clarification deadlines
+- Flag any compressed timelines
+
+### 3. DEPENDENCIES
+Internal and external dependencies:
+- External: subcontractors, equipment suppliers, regulatory bodies, certification authorities
+- Internal: certifications the bidder must hold, required references/past projects, required equipment
+- Note if subcontracting is allowed or restricted
+
+Return JSON matching the schema. No commentary outside JSON.
+
+---
+
+RFP DOCUMENT:
+
+{rfp_content}
+"""
+
+
+ANALYSIS_PROMPT_C = """Analyze the following RFP/tender document.
+
+The document may be in any language. Your output must be in English.
+
+Extract ONLY the following:
+
+### 1. RISKS & PITFALLS
+Flag everything that could affect the bid or delivery:
+- Ambiguous or contradictory scope items
+- Compressed timelines relative to scope
+- Unusual penalty clauses or liability terms
+- Long warranty or maintenance obligations
+- Unclear interface or boundary definitions
+- Feasibility or executability concerns
+- Missing technical documentation or drawings
+- Unusual acceptance or sign-off conditions
+- Scarce specialist skills or long equipment lead times
+- Unusual payment terms
+
+### 2. COMPLIANCE & NORMS
+Every standard, regulation, or certification mentioned or implied:
+- Quality & management: ISO 9001, ISO 14001, ISO 45001, ISO 27001
+- Electrical & engineering: IEC 61850, IEC 62443, IEC 60364, IEEE, VDE, DIN, national standards
+- Safety: ATEX/IECEx, IEC 61508, IEC 61511, ISO 13849, DGUV, OSHA, HSE
+- Data & cybersecurity: GDPR/DSGVO, IEC 62443, SOC 2
+- Industry-specific: grid codes, FIDIC, ISO 26262, IEC 62304, FDA regulations, etc.
+For each: state whether explicitly mentioned or implied, and whether formal certification is required.
+
+### 3. ANALYSIS NOTES & CONFIDENCE
+- Analyst observations, assumptions, or areas needing clarification
+- Confidence score 0.0-1.0 on completeness of this analysis
+
+Return JSON matching the schema. No commentary outside JSON.
+
+---
+
+RFP DOCUMENT:
+
+{rfp_content}
+"""
+
+
 MERGE_PROMPT = """You have analyzed an RFP in multiple chunks. Below are the partial analyses.
 Merge them into one complete, deduplicated, coherent analysis.
 
