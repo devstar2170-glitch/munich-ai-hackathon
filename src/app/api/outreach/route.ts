@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getProjectById, getAllEmployees } from '@/lib/storage';
 
+function rfc2047Encode(str: string): string {
+    return `=?UTF-8?B?${Buffer.from(str, 'utf-8').toString('base64')}?=`;
+}
+
 async function sendNtfy(topic: string, title: string, message: string, priority?: number) {
     const res = await fetch(`https://ntfy.sh/${topic}`, {
         method: 'POST',
         headers: {
-            'Title': title,
+            'Title': rfc2047Encode(title),
             'Priority': String(priority ?? 3),
         },
         body: message,
