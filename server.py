@@ -107,6 +107,55 @@ async def analyze_rfq(file: UploadFile = File(...)):
     }
 
 
+class ExtractedEmployee(BaseModel):
+    firstName: str
+    lastName: str
+    email: str | None = None
+    location: str | None = None
+    role: str | None = None
+    level: str | None = None
+    yearsOfExperience: float | None = None
+    pastIndustryExperience: list[str] = []
+    skills: list[str] = []
+    certifications: list[str] = []
+    linkedin: str | None = None
+
+
+@app.post("/api/extract-cv")
+async def extract_cv(file: UploadFile = File(...)):
+    """Accept a CV PDF, extract a structured candidate profile via Gemini."""
+    from google import genai
+    from google.genai import types
+    import os
+
+    key = os.getenv("GEMINI_API_KEY", "")
+    if not key:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
+
+    content = await file.read()
+
+    client = genai.Client(api_key=key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            types.Part.from_bytes(data=content, mime_type=file.content_type or "application/pdf"),
+            "Extract the candidate's profile information from this CV.",
+        ],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=ExtractedEmployee,
+            temperature=0.1,
+        ),
+    )
+
+    try:
+        data = json.loads(response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse CV extraction response: {e}")
+
+    return {"status": "success", "data": data}
+
+
 class MatchRequest(BaseModel):
     requirements: list[str]
     employees: list[dict]
