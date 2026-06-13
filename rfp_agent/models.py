@@ -78,3 +78,37 @@ class RFPAnalysis(BaseModel):
     pitfalls: List[str] = Field(description="Specific gotchas, ambiguities, or unusual clauses that need attention")
     analysis_notes: List[str] = Field(description="Analyst observations, assumptions made, or areas needing clarification")
     confidence_score: float = Field(description="0.0-1.0 confidence in the completeness of this analysis")
+
+
+# ---------------------------------------------------------------------------
+# Partial schemas for parallel analysis (one Gemini call per part)
+# ---------------------------------------------------------------------------
+
+class RFPPartA(BaseModel):
+    """Metadata + requirements + evaluation criteria."""
+    rfp_title: str
+    client_name: Optional[str] = None
+    rfp_summary: str = Field(description="2-3 sentence executive summary")
+    project_scope: str = Field(description="Detailed scope of work")
+    submission_deadline: Optional[str] = None
+    project_duration: Optional[str] = None
+    estimated_team_size: Optional[str] = None
+    budget_constraints: Optional[str] = None
+    requirements: List[Requirement]
+    key_evaluation_criteria: List[str]
+
+
+class RFPPartB(BaseModel):
+    """Skills matrix + deadlines + dependencies."""
+    skills_required: List[SkillRequirement]
+    deadlines: List[Deadline]
+    dependencies: List[Dependency]
+
+
+class RFPPartC(BaseModel):
+    """Risks + compliance + pitfalls + analysis notes."""
+    risks: List[Risk]
+    compliance_norms: List[ComplianceNorm]
+    pitfalls: List[str]
+    analysis_notes: List[str]
+    confidence_score: float

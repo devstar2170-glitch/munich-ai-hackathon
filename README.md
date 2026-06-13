@@ -52,6 +52,30 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## CLI Usage
+
+You can also run the agent directly from the terminal, without the web UI — useful for batch processing or testing.
+
+```bash
+# Single document
+python3 main.py rfp.pdf
+
+# Multiple documents at once
+python3 main.py rfp1.pdf rfp2.docx rfp3.pdf
+
+# Save results to files (one JSON per document)
+python3 main.py rfp1.pdf rfp2.pdf --output-dir results/ --planning-dir planning/
+# Produces:
+#   results/rfp1.json        — full analysis
+#   results/rfp2.json
+#   planning/rfp1_planning.json  — slim payload for Planning Agent
+#   planning/rfp2_planning.json
+```
+
+Output includes: summary, requirements table, skills matrix, deadlines, dependencies, risks, compliance norms, and pitfalls — all in a clean terminal format.
+
+---
+
 ## System Overview
 
 This repository contains the **RFP Analysis Agent** — the first step in a multi-agent sales engineering pipeline. It reads an RFP/tender document (PDF, DOCX, TXT) and produces structured intelligence for downstream agents.
