@@ -8,8 +8,10 @@ Authentication uses Application Default Credentials (ADC). Set up ADC with:
 or point GOOGLE_APPLICATION_CREDENTIALS at a service-account key file.
 """
 
+import base64
 import io
 import logging
+from email.mime.text import MIMEText
 
 import google.auth
 from googleapiclient.discovery import build
@@ -37,6 +39,23 @@ def build_drive_service(credentials=None):
 def build_sheets_service(credentials=None):
     credentials = credentials or get_credentials()
     return build("sheets", "v4", credentials=credentials)
+
+
+def build_gmail_service(credentials=None):
+    credentials = credentials or get_credentials()
+    return build("gmail", "v1", credentials=credentials)
+
+
+def send_email(gmail_service, to: str, subject: str, html_body: str, sender: str | None = None) -> None:
+    """Send an HTML email via the Gmail API, sent as the authenticated user."""
+    message = MIMEText(html_body, "html")
+    message["to"] = to
+    message["subject"] = subject
+    if sender:
+        message["from"] = sender
+
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+    gmail_service.users().messages().send(userId="me", body={"raw": raw}).execute()
 
 
 def find_folder_id_by_name(drive_service, folder_name: str) -> str:

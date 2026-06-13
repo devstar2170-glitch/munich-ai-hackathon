@@ -37,6 +37,22 @@ export async function extractCV(fileBuffer: Buffer, mimeType: string, fileName =
   return data.data;
 }
 
+export async function getProfileGaps(employee: object) {
+  const res = await fetch(`${AGENT_API}/api/profile-gaps`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(employee),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Agent API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.gaps;
+}
+
 export async function matchEmployees(requirements: string[], employees: object[], humanAnswer?: string) {
   const res = await fetch(`${AGENT_API}/api/match`, {
     method: 'POST',

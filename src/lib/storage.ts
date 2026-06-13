@@ -47,6 +47,14 @@ export interface Employee {
   projectEnd: string;
   cv: string;
   linkedin: string;
+  dismissedGapFields?: string[];
+  profileToken?: string;
+  pendingUpdates?: Record<string, { value: any; confidence: number; reasoning: string; source: string }>;
+}
+
+export async function getEmployeeByToken(token: string): Promise<Employee | undefined> {
+  const employees = await getAllEmployees();
+  return employees.find(e => e.profileToken === token);
 }
 
 export async function getAllEmployees(): Promise<Employee[]> {

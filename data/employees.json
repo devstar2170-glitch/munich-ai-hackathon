@@ -185,7 +185,7 @@
     "availabilityStatus": "Available",
     "projectStart": "2024-04-01",
     "projectEnd": "2025-04-01",
-    "cv": "",
+    "cv": "https://drive.google.com/file/d/1_EMnflP7q9Qr6LlK4ecZkhby4Sh91DvP/view?usp=share_link",
     "linkedin": "https://linkedin.com/in/fionagallagher"
   },
   {
@@ -223,5 +223,43 @@
     "projectEnd": "2025-12-31",
     "cv": "",
     "linkedin": "https://linkedin.com/in/georgmueller"
+  },
+  {
+    "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+    "email": "markus.hoffmann@email.com",
+    "firstName": "Markus",
+    "lastName": "Hoffmann",
+    "location": "Zurich, Switzerland",
+    "role": "Senior Principal Mechanical Engineer",
+    "level": "Senior Principal",
+    "yearsOfExperience": 9.5,
+    "pastIndustryExperience": [
+      "Robotics",
+      "Automation",
+      "Electrification"
+    ],
+    "futureIndustryWish": [
+      "renewable energy",
+      "automotive"
+    ],
+    "skills": [
+      "CATIA V6",
+      "SolidWorks",
+      "SIMULIA (Abaqus)",
+      "MATLAB/Simulink",
+      "Python (Data Analysis)",
+      "PLM (Windchill)",
+      "SAP ERP",
+      "Six Sigma Green Belt"
+    ],
+    "certifications": [],
+    "availabilityStatus": "Available",
+    "projectStart": "2026-09-01",
+    "projectEnd": "2027-03-31",
+    "cv": "/cvs/9ea57751-5703-4473-9e8b-3790d4d706e4.pdf",
+    "linkedin": "linkedin.com/in/mhoffmann-eng",
+    "dismissedGapFields": [],
+    "pendingUpdates": {},
+    "profileToken": "daf28682-8f94-4dd7-8443-e056784e7a1b"
   }
 ]

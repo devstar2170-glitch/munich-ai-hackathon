@@ -35,6 +35,9 @@ export default function Home() {
   const [cvResolution, setCvResolution] = useState<any>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('new');
   const cvInputRef = useRef<HTMLInputElement>(null);
+  const [gapsReview, setGapsReview] = useState<any>(null);
+  const [isLoadingGaps, setIsLoadingGaps] = useState(false);
+  const [sendLinkStatus, setSendLinkStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchEmployees();
@@ -183,6 +186,7 @@ export default function Home() {
           body: JSON.stringify(newEmployee),
         });
         await fetchEmployees();
+        await openProfileGaps(newEmployee);
       } else {
         setSelectedMatchId('new');
         setCvResolution({ extracted, cvUrl, matches });
@@ -227,10 +231,127 @@ export default function Home() {
         body: JSON.stringify(employee),
       });
       await fetchEmployees();
+      await openProfileGaps(employee);
     } catch (err) {
       console.error('Failed to save employee', err);
     } finally {
       setCvResolution(null);
+    }
+  };
+
+  const openProfileGaps = async (employee: any) => {
+    setIsLoadingGaps(true);
+    try {
+      const res = await fetch(`/api/employees/${employee.id}/gaps`);
+      const result = await res.json();
+      const gaps = result.status === 'success' ? result.data : [];
+      const hasPending = employee.pendingUpdates && Object.keys(employee.pendingUpdates).length > 0;
+      if (gaps.length > 0 || hasPending) {
+        setGapsReview({ employee, gaps, answers: {}, skipped: [] as string[] });
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile gaps', err);
+    } finally {
+      setIsLoadingGaps(false);
+    }
+  };
+
+  const ARRAY_FIELDS = ['skills', 'certifications', 'pastIndustryExperience', 'futureIndustryWish'];
+
+  const setGapAnswer = (field: string, value: string) => {
+    setGapsReview((prev: any) => ({ ...prev, answers: { ...prev.answers, [field]: value } }));
+  };
+
+  const toggleSkipGap = (field: string) => {
+    setGapsReview((prev: any) => ({
+      ...prev,
+      skipped: prev.skipped.includes(field)
+        ? prev.skipped.filter((f: string) => f !== field)
+        : [...prev.skipped, field],
+    }));
+  };
+
+  const handleSaveGapAnswers = async () => {
+    if (!gapsReview) return;
+    const { employee, gaps, answers, skipped } = gapsReview;
+    const updated = { ...employee };
+
+    for (const gap of gaps) {
+      if (skipped.includes(gap.field)) continue;
+      const value = answers[gap.field];
+      if (value === undefined || value === '') continue;
+
+      if (ARRAY_FIELDS.includes(gap.field)) {
+        updated[gap.field] = value.split(',').map((s: string) => s.trim()).filter(Boolean);
+      } else if (gap.field === 'yearsOfExperience') {
+        updated[gap.field] = Number(value);
+      } else {
+        updated[gap.field] = value;
+      }
+    }
+
+    const dismissed = new Set<string>(employee.dismissedGapFields || []);
+    skipped.forEach((f: string) => dismissed.add(f));
+    updated.dismissedGapFields = Array.from(dismissed);
+
+    try {
+      await fetch(`/api/employees/${updated.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+      await fetchEmployees();
+    } catch (err) {
+      console.error('Failed to save profile answers', err);
+    } finally {
+      setGapsReview(null);
+    }
+  };
+
+  const handleSendLink = async (employee: any) => {
+    setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'sending' }));
+    try {
+      const res = await fetch(`/api/employees/${employee.id}/send-link`, { method: 'POST' });
+      const result = await res.json();
+      if (result.status !== 'success') {
+        setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'error' }));
+        return;
+      }
+      // Always copy the link so HR can share it even when email isn't configured.
+      const link = result.data?.link;
+      if (link) {
+        try { await navigator.clipboard.writeText(link); } catch { /* clipboard may be blocked */ }
+      }
+      // 'sent' = email delivered; 'copied' = link ready on clipboard (no mail provider).
+      setSendLinkStatus(prev => ({ ...prev, [employee.id]: result.data?.emailSent ? 'sent' : 'copied' }));
+    } catch (err) {
+      console.error('Failed to send profile link', err);
+      setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'error' }));
+    }
+  };
+
+  const handlePendingDecision = async (field: string, accept: boolean) => {
+    if (!gapsReview) return;
+    const employee = { ...gapsReview.employee };
+    const pending = { ...(employee.pendingUpdates || {}) };
+    const entry = pending[field];
+    delete pending[field];
+
+    if (accept && entry) {
+      employee[field] = entry.value;
+    }
+    employee.pendingUpdates = pending;
+
+    try {
+      await fetch(`/api/employees/${employee.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(employee),
+      });
+      await fetchEmployees();
+      setGapsReview((prev: any) => (prev ? { ...prev, employee } : prev));
+    } catch (err) {
+      console.error('Failed to update pending field', err);
     }
   };
 
@@ -668,12 +789,31 @@ export default function Home() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => setEditingEmployee(emp)}
-                            className="text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded-lg transition-colors"
-                          >
-                            Edit
-                          </button>
+                          <div className="flex gap-1 items-center">
+                            <button
+                              onClick={() => setEditingEmployee(emp)}
+                              className="text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded-lg transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => openProfileGaps(emp)}
+                              disabled={isLoadingGaps}
+                              className="text-xs font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 px-3 py-1 rounded-lg transition-colors disabled:opacity-50 relative"
+                            >
+                              Review
+                              {emp.pendingUpdates && Object.keys(emp.pendingUpdates).length > 0 && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleSendLink(emp)}
+                              disabled={sendLinkStatus[emp.id] === 'sending'}
+                              className="text-xs font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {sendLinkStatus[emp.id] === 'sending' ? 'Sending...' : sendLinkStatus[emp.id] === 'sent' ? 'Sent ✓' : sendLinkStatus[emp.id] === 'copied' ? 'Link copied ✓' : sendLinkStatus[emp.id] === 'error' ? 'Failed' : 'Send Link'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -935,6 +1075,122 @@ export default function Home() {
                           className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold"
                         >
                           Confirm
+                        </button>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Profile Gap Review Modal */}
+              <AnimatePresence>
+                {gapsReview && (
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-zinc-200 dark:border-zinc-800 max-h-[85vh] overflow-y-auto"
+                    >
+                      <h3 className="text-2xl font-bold mb-2">Complete Profile</h3>
+                      <p className="text-sm text-zinc-500 mb-6">
+                        A few things would help us match{' '}
+                        <span className="font-bold">{gapsReview.employee.firstName} {gapsReview.employee.lastName}</span>{' '}
+                        to projects more accurately.
+                      </p>
+
+                      {gapsReview.employee.pendingUpdates && Object.keys(gapsReview.employee.pendingUpdates).length > 0 && (
+                        <div className="space-y-3 mb-6">
+                          <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400">From employee uploads</h4>
+                          {Object.entries(gapsReview.employee.pendingUpdates).map(([field, p]: [string, any]) => {
+                            const value = Array.isArray(p.value) ? p.value.join(', ') : p.value;
+                            return (
+                              <div key={field} className="flex items-start gap-2 p-3 rounded-xl border border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10">
+                                <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded mt-0.5">NEW</span>
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold">{field}: <span className="font-normal">{value}</span></p>
+                                  <p className="text-xs text-zinc-500">From {p.source} · confidence {Math.round(p.confidence)}% · {p.reasoning}</p>
+                                </div>
+                                <div className="flex gap-1 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handlePendingDecision(field, true)}
+                                    className="text-xs font-bold text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 px-2 py-1 rounded-lg"
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handlePendingDecision(field, false)}
+                                    className="text-xs font-bold text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="space-y-5 mb-6">
+                        {gapsReview.gaps.map((gap: any) => {
+                          const skipped = gapsReview.skipped.includes(gap.field);
+                          return (
+                            <div key={gap.field} className={skipped ? 'opacity-40' : ''}>
+                              <label className="text-sm font-bold mb-1 block">{gap.question}</label>
+                              {gap.reasoning && (
+                                <p className="text-xs text-zinc-400 mb-2">{gap.reasoning}</p>
+                              )}
+                              <div className="flex gap-2">
+                                {gap.options && gap.options.length > 0 ? (
+                                  <select
+                                    value={gapsReview.answers[gap.field] || ''}
+                                    onChange={(e) => setGapAnswer(gap.field, e.target.value)}
+                                    disabled={skipped}
+                                    className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                                  >
+                                    <option value="">— Select —</option>
+                                    {gap.options.map((opt: string) => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={gapsReview.answers[gap.field] || ''}
+                                    onChange={(e) => setGapAnswer(gap.field, e.target.value)}
+                                    disabled={skipped}
+                                    placeholder={ARRAY_FIELDS.includes(gap.field) ? 'Comma separated' : ''}
+                                    className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                                  />
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleSkipGap(gap.field)}
+                                  className={`text-xs font-bold px-3 rounded-xl border transition-colors ${skipped ? 'border-blue-500 text-blue-500' : 'border-zinc-200 dark:border-zinc-800 text-zinc-400'}`}
+                                >
+                                  {skipped ? 'Skipped' : 'Skip'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setGapsReview(null)}
+                          className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-bold"
+                        >
+                          Close
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveGapAnswers}
+                          className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold"
+                        >
+                          Save Answers
                         </button>
                       </div>
                     </motion.div>
