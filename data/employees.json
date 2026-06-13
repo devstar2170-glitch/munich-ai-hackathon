@@ -1,0 +1,56 @@
+[
+  {
+    "id": "emp_001",
+    "name": "Alice Smith",
+    "role": "Senior Frontend Developer",
+    "skills": ["React", "TypeScript", "Tailwind CSS", "Framer Motion", "Next.js"],
+    "experience": "8 years",
+    "bio": "Expert in building high-performance, interactive web applications with a focus on UX.",
+    "availability": true
+  },
+  {
+    "id": "emp_002",
+    "name": "Bob Johnson",
+    "role": "Solutions Architect",
+    "skills": ["AWS", "System Design", "Node.js", "Docker", "Kubernetes"],
+    "experience": "12 years",
+    "bio": "Specializes in scalable cloud infrastructure and distributed systems.",
+    "availability": true
+  },
+  {
+    "id": "emp_003",
+    "name": "Charlie Davis",
+    "role": "Full Stack Engineer",
+    "skills": ["React", "Node.js", "PostgreSQL", "GraphQL", "TypeScript"],
+    "experience": "5 years",
+    "bio": "Versatile engineer comfortable across the entire stack, from DB to UI.",
+    "availability": true
+  },
+  {
+    "id": "emp_004",
+    "name": "Diana Prince",
+    "role": "UI/UX Designer",
+    "skills": ["Figma", "Adobe XD", "CSS", "Accessibility", "Prototyping"],
+    "experience": "6 years",
+    "bio": "Passionate about creating inclusive and visually stunning digital experiences.",
+    "availability": true
+  },
+  {
+    "id": "emp_005",
+    "name": "Ethan Hunt",
+    "role": "DevOps Engineer",
+    "skills": ["Terraform", "CI/CD", "Azure", "Python", "Monitoring"],
+    "experience": "7 years",
+    "bio": "Automating everything to ensure fast and reliable deployment cycles.",
+    "availability": true
+  },
+  {
+    "id": "emp_006",
+    "name": "Fiona Gallagher",
+    "role": "Backend Specialist",
+    "skills": ["Go", "Microservices", "Redis", "gRPC", "SQL"],
+    "experience": "9 years",
+    "bio": "Building robust and efficient backend services for high-traffic platforms.",
+    "availability": true
+  }
+]
