@@ -19,7 +19,7 @@ cp .env.example .env
 
 ```bash
 # Python (RFP agent + API server)
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Node.js (Next.js frontend)
 npm install
@@ -29,6 +29,10 @@ npm install
 
 **Terminal 1 — Python API server (port 8000):**
 ```bash
+# macOS / Linux
+python3 -m uvicorn server:app --port 8000
+
+# Windows
 uvicorn server:app --port 8000
 ```
 
@@ -40,6 +44,11 @@ npm run dev
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 > Both servers must be running at the same time. The frontend sends RFP files to the Python server for analysis.
+
+**macOS troubleshooting:**
+- Use `python3` and `pip3` instead of `python` / `pip` — macOS ships with Python 2 by default
+- If `uvicorn` command is not found, always use `python3 -m uvicorn server:app --port 8000`
+- If you get a permissions error on port 8000, try `--port 8001` and set `NEXT_PUBLIC_AGENT_API_URL=http://localhost:8001` in your `.env`
 
 ---
 
