@@ -4,10 +4,14 @@ All values can be overridden via environment variables (e.g. in a .env file).
 """
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load this package's own .env regardless of the process's current working
+# directory (load_dotenv() with no args would otherwise pick up a repo-root
+# .env that doesn't have these settings).
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Google Drive folder names (used for discovery when IDs are not known yet).
 DROPZONE_FOLDER_NAME = os.getenv("DROPZONE_FOLDER_NAME", "01_CV_Dropzone")
