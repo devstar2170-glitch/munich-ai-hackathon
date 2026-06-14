@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 
 type Stage = 'INGESTION' | 'ANALYSIS' | 'PLANNING' | 'OUTREACH';
-type View = 'PIPELINE' | 'EMPLOYEES';
+type View = 'PIPELINE' | 'EMPLOYEES' | 'SETTINGS';
 
 const STAGES: { id: Stage; label: string }[] = [
   { id: 'INGESTION', label: 'Ingestion' },
@@ -39,8 +39,13 @@ export default function Home() {
   const [isLoadingGaps, setIsLoadingGaps] = useState(false);
   const [sendLinkStatus, setSendLinkStatus] = useState<Record<string, string>>({});
 
+  const [orgSettings, setOrgSettings] = useState<any>(null);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
   useEffect(() => {
     fetchEmployees();
+    fetchOrgSettings();
   }, []);
 
   const fetchEmployees = async () => {
@@ -50,6 +55,56 @@ export default function Home() {
       if (result.status === 'success') setEmployees(result.data);
     } catch (err) {
       console.error('Failed to fetch employees');
+    }
+  };
+
+  const fetchOrgSettings = async () => {
+    try {
+      const res = await fetch('/api/org-settings');
+      const result = await res.json();
+      if (result.status === 'success') setOrgSettings(result.data);
+    } catch (err) {
+      console.error('Failed to fetch org settings');
+    }
+  };
+
+  // List fields are edited as comma-separated text; number fields are parsed on save.
+  const ORG_LIST_FIELDS = ['coreCompetencies', 'industries', 'geographies', 'certifications', 'languages', 'keywords', 'cpvCodes', 'exclusionCriteria'];
+  const ORG_NUMBER_FIELDS = ['minContractValue', 'maxContractValue', 'maxTeamSize'];
+
+  const setOrgField = (field: string, value: any) => {
+    setOrgSettings((prev: any) => ({ ...prev, [field]: value }));
+    setSettingsSaved(false);
+  };
+
+  const handleSaveOrgSettings = async () => {
+    if (!orgSettings) return;
+    setIsSavingSettings(true);
+    try {
+      // Normalize list fields (comma-separated strings -> arrays) and number fields.
+      const payload: any = { ...orgSettings };
+      for (const f of ORG_LIST_FIELDS) {
+        if (typeof payload[f] === 'string') {
+          payload[f] = payload[f].split(',').map((s: string) => s.trim()).filter(Boolean);
+        }
+      }
+      for (const f of ORG_NUMBER_FIELDS) {
+        payload[f] = payload[f] === '' || payload[f] === undefined || payload[f] === null ? undefined : Number(payload[f]);
+      }
+      const res = await fetch('/api/org-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        setOrgSettings(result.data);
+        setSettingsSaved(true);
+      }
+    } catch (err) {
+      console.error('Failed to save org settings', err);
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -374,6 +429,12 @@ export default function Home() {
               >
                 Employees
               </button>
+              <button
+                onClick={() => setActiveView('SETTINGS')}
+                className={`text-sm font-medium transition-colors ${activeView === 'SETTINGS' ? 'text-blue-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+              >
+                Org Settings
+              </button>
             </div>
           </div>
           <div className="text-xs font-mono bg-zinc-200 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-600 dark:text-zinc-400">
@@ -686,7 +747,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
             </motion.div>
-          ) : (
+          ) : activeView === 'EMPLOYEES' ? (
             <motion.div
               key="employees"
               initial={{ opacity: 0, x: 10 }}
@@ -1197,6 +1258,126 @@ export default function Home() {
                   </div>
                 )}
               </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tighter mb-1">Organization Settings</h1>
+                <p className="text-zinc-500 text-sm">
+                  Defines who you are and what you bid on. Used to qualify inbound tenders and to
+                  parameterize the outbound tender search.
+                </p>
+              </div>
+
+              {!orgSettings ? (
+                <p className="text-zinc-400">Loading settings...</p>
+              ) : (
+                <div className="space-y-6 max-w-3xl">
+                  {/* Identity */}
+                  <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
+                    <h2 className="text-lg font-bold">Company</h2>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">Company name</label>
+                      <input
+                        type="text"
+                        value={orgSettings.companyName || ''}
+                        onChange={(e) => setOrgField('companyName', e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">What we do</label>
+                      <textarea
+                        value={orgSettings.description || ''}
+                        onChange={(e) => setOrgField('description', e.target.value)}
+                        rows={3}
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                      />
+                    </div>
+                  </section>
+
+                  {/* Capabilities — qualification inputs */}
+                  <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
+                    <h2 className="text-lg font-bold">Capabilities & scope</h2>
+                    <p className="text-xs text-zinc-500 -mt-2">Comma-separated. These are matched against each tender to decide bid / no-bid.</p>
+                    {[
+                      { field: 'coreCompetencies', label: 'Core competencies' },
+                      { field: 'industries', label: 'Industries served' },
+                      { field: 'geographies', label: 'Geographies' },
+                      { field: 'certifications', label: 'Certifications held' },
+                      { field: 'languages', label: 'Languages' },
+                    ].map(({ field, label }) => (
+                      <div key={field}>
+                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                        <input
+                          type="text"
+                          value={Array.isArray(orgSettings[field]) ? orgSettings[field].join(', ') : (orgSettings[field] || '')}
+                          onChange={(e) => setOrgField(field, e.target.value)}
+                          className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                        />
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-3 gap-4">
+                      {[
+                        { field: 'minContractValue', label: 'Min value (€)' },
+                        { field: 'maxContractValue', label: 'Max value (€)' },
+                        { field: 'maxTeamSize', label: 'Max team size' },
+                      ].map(({ field, label }) => (
+                        <div key={field}>
+                          <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                          <input
+                            type="number"
+                            value={orgSettings[field] ?? ''}
+                            onChange={(e) => setOrgField(field, e.target.value)}
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Outbound search + no-bid rules */}
+                  <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
+                    <h2 className="text-lg font-bold">Outbound search & exclusions</h2>
+                    <p className="text-xs text-zinc-500 -mt-2">Comma-separated. Seeds the tender crawl; exclusions are hard no-bid rules.</p>
+                    {[
+                      { field: 'keywords', label: 'Search keywords' },
+                      { field: 'cpvCodes', label: 'CPV codes (EU public tenders)' },
+                      { field: 'exclusionCriteria', label: 'Exclusion criteria (never bid)' },
+                    ].map(({ field, label }) => (
+                      <div key={field}>
+                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                        <input
+                          type="text"
+                          value={Array.isArray(orgSettings[field]) ? orgSettings[field].join(', ') : (orgSettings[field] || '')}
+                          onChange={(e) => setOrgField(field, e.target.value)}
+                          className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
+                        />
+                      </div>
+                    ))}
+                  </section>
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleSaveOrgSettings}
+                      disabled={isSavingSettings}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {isSavingSettings ? 'Saving...' : 'Save Settings'}
+                    </button>
+                    {settingsSaved && <span className="text-sm text-green-600">Saved ✓</span>}
+                    {orgSettings.updatedAt && (
+                      <span className="text-xs text-zinc-400">Last updated {new Date(orgSettings.updatedAt).toLocaleString()}</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
