@@ -1,38 +1,39 @@
 {
-  "companyName": "BBA",
-  "description": "Mechanical Engineering and market leader for switchgears",
+  "companyName": "MU Enterprise",
+  "description": "Global OEM & integrator for international industrial automation, power grids, and hardware. We target large turnkey projects (PLCs, switchgear, SCADA, VFDs) for utilities and plants. Exclude: commodity retail, residential, and low-tech construction. Focus: high-value engineering and mission-critical industrial infrastructure.",
   "coreCompetencies": [
-    "Electronics",
-    "heavy industries"
+    "Electrification and Energy Management",
+    "Automation and Control Systems"
   ],
   "industries": [
-    "Chemicals",
-    "Real estate"
+    "All industries"
   ],
   "geographies": [
     "Europe"
   ],
   "certifications": [
-    "ISO 270001"
+    "All of them"
   ],
   "languages": [
-    "German",
-    "English",
-    "French",
-    "Italien",
-    "Spanish"
+    "All languages"
   ],
-  "minContractValue": 2500000,
+  "minContractValue": 1,
   "maxContractValue": 1000000000,
-  "maxTeamSize": 49,
+  "maxTeamSize": 30,
   "keywords": [
     "Switchgears"
   ],
   "cpvCodes": [
-    "31110000"
+    "31214000",
+    "31200000",
+    "31170000",
+    "31110000",
+    "31153000",
+    "31154000",
+    "31158000"
   ],
   "exclusionCriteria": [
     "Defense"
   ],
-  "updatedAt": "2026-06-14T08:28:31.435Z"
+  "updatedAt": "2026-06-14T09:46:49.313Z"
 }

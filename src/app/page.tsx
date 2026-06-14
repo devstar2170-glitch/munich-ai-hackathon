@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 
 type Stage = "INGESTION" | "ANALYSIS" | "PLANNING" | "OUTREACH" | "FEEDBACK";
-type View = "PIPELINE" | "EMPLOYEES" | "SETTINGS";
+type View = "PIPELINE" | "EMPLOYEES" | "SETTINGS" | "DISCOVER";
 
 const STAGES: { id: Stage; label: string }[] = [
   { id: "INGESTION", label: "Ingestion" },
@@ -42,11 +42,24 @@ export default function Home() {
   const cvInputRef = useRef<HTMLInputElement>(null);
   const [gapsReview, setGapsReview] = useState<any>(null);
   const [isLoadingGaps, setIsLoadingGaps] = useState(false);
-  const [sendLinkStatus, setSendLinkStatus] = useState<Record<string, string>>({});
+  const [sendLinkStatus, setSendLinkStatus] = useState<Record<string, string>>(
+    {},
+  );
 
   const [orgSettings, setOrgSettings] = useState<any>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+
+  // Discover & Rank state
+  const [discoverResults, setDiscoverResults] = useState<any[]>([]);
+  const [discoverTotal, setDiscoverTotal] = useState(0);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoverError, setDiscoverError] = useState<string | null>(null);
+  const [discoverDaysBack, setDiscoverDaysBack] = useState(30);
+  const [discoverLimit, setDiscoverLimit] = useState(20);
+  const [analyzingTenderId, setAnalyzingTenderId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchEmployees();
@@ -63,7 +76,7 @@ export default function Home() {
         try {
           const res = await fetch(`/api/feedback/${c.feedbackToken}`);
           const data = await res.json();
-          if (data.status === 'success') {
+          if (data.status === "success") {
             return {
               ...c,
               feedbackResponse: data.data.feedbackResponse,
@@ -71,9 +84,9 @@ export default function Home() {
               alreadySubmitted: data.data.alreadySubmitted,
             };
           }
-        } catch { }
+        } catch {}
         return c;
-      })
+      }),
     );
     setFeedbackResults(updated);
   }, [currentProject]);
@@ -97,17 +110,30 @@ export default function Home() {
 
   const fetchOrgSettings = async () => {
     try {
-      const res = await fetch('/api/org-settings');
+      const res = await fetch("/api/org-settings");
       const result = await res.json();
-      if (result.status === 'success') setOrgSettings(result.data);
+      if (result.status === "success") setOrgSettings(result.data);
     } catch (err) {
-      console.error('Failed to fetch org settings');
+      console.error("Failed to fetch org settings");
     }
   };
 
   // List fields are edited as comma-separated text; number fields are parsed on save.
-  const ORG_LIST_FIELDS = ['coreCompetencies', 'industries', 'geographies', 'certifications', 'languages', 'keywords', 'cpvCodes', 'exclusionCriteria'];
-  const ORG_NUMBER_FIELDS = ['minContractValue', 'maxContractValue', 'maxTeamSize'];
+  const ORG_LIST_FIELDS = [
+    "coreCompetencies",
+    "industries",
+    "geographies",
+    "certifications",
+    "languages",
+    "keywords",
+    "cpvCodes",
+    "exclusionCriteria",
+  ];
+  const ORG_NUMBER_FIELDS = [
+    "minContractValue",
+    "maxContractValue",
+    "maxTeamSize",
+  ];
 
   const setOrgField = (field: string, value: any) => {
     setOrgSettings((prev: any) => ({ ...prev, [field]: value }));
@@ -121,27 +147,87 @@ export default function Home() {
       // Normalize list fields (comma-separated strings -> arrays) and number fields.
       const payload: any = { ...orgSettings };
       for (const f of ORG_LIST_FIELDS) {
-        if (typeof payload[f] === 'string') {
-          payload[f] = payload[f].split(',').map((s: string) => s.trim()).filter(Boolean);
+        if (typeof payload[f] === "string") {
+          payload[f] = payload[f]
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean);
         }
       }
       for (const f of ORG_NUMBER_FIELDS) {
-        payload[f] = payload[f] === '' || payload[f] === undefined || payload[f] === null ? undefined : Number(payload[f]);
+        payload[f] =
+          payload[f] === "" || payload[f] === undefined || payload[f] === null
+            ? undefined
+            : Number(payload[f]);
       }
-      const res = await fetch('/api/org-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/org-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const result = await res.json();
-      if (result.status === 'success') {
+      if (result.status === "success") {
         setOrgSettings(result.data);
         setSettingsSaved(true);
       }
     } catch (err) {
-      console.error('Failed to save org settings', err);
+      console.error("Failed to save org settings", err);
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  const handleDiscover = async () => {
+    if (!orgSettings) return;
+    setIsDiscovering(true);
+    setDiscoverError(null);
+    setDiscoverResults([]);
+    try {
+      const res = await fetch("http://localhost:8000/api/discover-and-rank", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          org_settings: orgSettings,
+          days_back: discoverDaysBack,
+          limit: discoverLimit,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setDiscoverResults(data.ranked || []);
+      setDiscoverTotal(data.total_searched || 0);
+    } catch (err: any) {
+      setDiscoverError(err.message || "Discovery failed");
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
+  const handleAnalyzeTender = async (tender: any) => {
+    setAnalyzingTenderId(tender.notice_id);
+    try {
+      const res = await fetch("/api/process-tender", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tender),
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        setCurrentProject(result.data);
+        setThoughtLog(result.data.thoughtLog);
+        setClarification(result.data.clarificationQuestion);
+        setMatchCandidates([]);
+        setUploadedFiles([]);
+        setCurrentStage("ANALYSIS");
+        setActiveView("PIPELINE");
+      }
+    } catch (err) {
+      console.error("Failed to analyze tender", err);
+    } finally {
+      setAnalyzingTenderId(null);
     }
   };
 
@@ -365,22 +451,32 @@ export default function Home() {
     try {
       const res = await fetch(`/api/employees/${employee.id}/gaps`);
       const result = await res.json();
-      const gaps = result.status === 'success' ? result.data : [];
-      const hasPending = employee.pendingUpdates && Object.keys(employee.pendingUpdates).length > 0;
+      const gaps = result.status === "success" ? result.data : [];
+      const hasPending =
+        employee.pendingUpdates &&
+        Object.keys(employee.pendingUpdates).length > 0;
       if (gaps.length > 0 || hasPending) {
         setGapsReview({ employee, gaps, answers: {}, skipped: [] as string[] });
       }
     } catch (err) {
-      console.error('Failed to fetch profile gaps', err);
+      console.error("Failed to fetch profile gaps", err);
     } finally {
       setIsLoadingGaps(false);
     }
   };
 
-  const ARRAY_FIELDS = ['skills', 'certifications', 'pastIndustryExperience', 'futureIndustryWish'];
+  const ARRAY_FIELDS = [
+    "skills",
+    "certifications",
+    "pastIndustryExperience",
+    "futureIndustryWish",
+  ];
 
   const setGapAnswer = (field: string, value: string) => {
-    setGapsReview((prev: any) => ({ ...prev, answers: { ...prev.answers, [field]: value } }));
+    setGapsReview((prev: any) => ({
+      ...prev,
+      answers: { ...prev.answers, [field]: value },
+    }));
   };
 
   const toggleSkipGap = (field: string) => {
@@ -400,11 +496,14 @@ export default function Home() {
     for (const gap of gaps) {
       if (skipped.includes(gap.field)) continue;
       const value = answers[gap.field];
-      if (value === undefined || value === '') continue;
+      if (value === undefined || value === "") continue;
 
       if (ARRAY_FIELDS.includes(gap.field)) {
-        updated[gap.field] = value.split(',').map((s: string) => s.trim()).filter(Boolean);
-      } else if (gap.field === 'yearsOfExperience') {
+        updated[gap.field] = value
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+      } else if (gap.field === "yearsOfExperience") {
         updated[gap.field] = Number(value);
       } else {
         updated[gap.field] = value;
@@ -417,37 +516,46 @@ export default function Home() {
 
     try {
       await fetch(`/api/employees/${updated.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
       });
       await fetchEmployees();
     } catch (err) {
-      console.error('Failed to save profile answers', err);
+      console.error("Failed to save profile answers", err);
     } finally {
       setGapsReview(null);
     }
   };
 
   const handleSendLink = async (employee: any) => {
-    setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'sending' }));
+    setSendLinkStatus((prev) => ({ ...prev, [employee.id]: "sending" }));
     try {
-      const res = await fetch(`/api/employees/${employee.id}/send-link`, { method: 'POST' });
+      const res = await fetch(`/api/employees/${employee.id}/send-link`, {
+        method: "POST",
+      });
       const result = await res.json();
-      if (result.status !== 'success') {
-        setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'error' }));
+      if (result.status !== "success") {
+        setSendLinkStatus((prev) => ({ ...prev, [employee.id]: "error" }));
         return;
       }
       // Always copy the link so HR can share it even when email isn't configured.
       const link = result.data?.link;
       if (link) {
-        try { await navigator.clipboard.writeText(link); } catch { /* clipboard may be blocked */ }
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {
+          /* clipboard may be blocked */
+        }
       }
       // 'sent' = email delivered; 'copied' = link ready on clipboard (no mail provider).
-      setSendLinkStatus(prev => ({ ...prev, [employee.id]: result.data?.emailSent ? 'sent' : 'copied' }));
+      setSendLinkStatus((prev) => ({
+        ...prev,
+        [employee.id]: result.data?.emailSent ? "sent" : "copied",
+      }));
     } catch (err) {
-      console.error('Failed to send profile link', err);
-      setSendLinkStatus(prev => ({ ...prev, [employee.id]: 'error' }));
+      console.error("Failed to send profile link", err);
+      setSendLinkStatus((prev) => ({ ...prev, [employee.id]: "error" }));
     }
   };
 
@@ -465,14 +573,14 @@ export default function Home() {
 
     try {
       await fetch(`/api/employees/${employee.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(employee),
       });
       await fetchEmployees();
       setGapsReview((prev: any) => (prev ? { ...prev, employee } : prev));
     } catch (err) {
-      console.error('Failed to update pending field', err);
+      console.error("Failed to update pending field", err);
     }
   };
 
@@ -498,10 +606,16 @@ export default function Home() {
                 Employees
               </button>
               <button
-                onClick={() => setActiveView('SETTINGS')}
-                className={`text-sm font-medium transition-colors ${activeView === 'SETTINGS' ? 'text-blue-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                onClick={() => setActiveView("SETTINGS")}
+                className={`text-sm font-medium transition-colors ${activeView === "SETTINGS" ? "text-blue-500" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
               >
                 Org Settings
+              </button>
+              <button
+                onClick={() => setActiveView("DISCOVER")}
+                className={`text-sm font-medium transition-colors ${activeView === "DISCOVER" ? "text-blue-500" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"}`}
+              >
+                Discover Tenders
               </button>
             </div>
           </div>
@@ -544,12 +658,13 @@ export default function Home() {
                       className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-950 px-4"
                     >
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive
-                          ? "border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20"
-                          : isCompleted
-                            ? "border-green-500 bg-green-500 text-white"
-                            : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                          }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                          isActive
+                            ? "border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20"
+                            : isCompleted
+                              ? "border-green-500 bg-green-500 text-white"
+                              : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                        }`}
                       >
                         {isCompleted ? "✓" : index + 1}
                       </div>
@@ -648,6 +763,51 @@ export default function Home() {
                           {uploadedFiles.length === 0
                             ? "Add files to begin"
                             : `Analyze RFP${uploadedFiles.length > 1 ? ` (${uploadedFiles.length} files)` : ""}`}
+                        </button>
+
+                        {/* Discover divider */}
+                        <div className="flex items-center gap-3 pt-2">
+                          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800" />
+                          <span className="text-xs text-zinc-400 font-medium">
+                            or
+                          </span>
+                          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-800" />
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setActiveView("DISCOVER");
+                            handleDiscover();
+                          }}
+                          disabled={isDiscovering || !orgSettings}
+                          className="w-full border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 py-3 rounded-xl font-semibold text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isDiscovering ? (
+                            <>
+                              <svg
+                                className="animate-spin h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v8H4z"
+                                />
+                              </svg>
+                              Searching EU tender portal…
+                            </>
+                          ) : (
+                            "⚡ Search & rank matching tenders from EU portal"
+                          )}
                         </button>
                       </div>
                     )}
@@ -971,12 +1131,12 @@ export default function Home() {
                                   ))}
                                 {(currentProject?.requirements || []).length >
                                   5 && (
-                                    <p className="text-xs text-zinc-400 italic">
-                                      ... and{" "}
-                                      {currentProject.requirements.length - 5}{" "}
-                                      more requirements
-                                    </p>
-                                  )}
+                                  <p className="text-xs text-zinc-400 italic">
+                                    ... and{" "}
+                                    {currentProject.requirements.length - 5}{" "}
+                                    more requirements
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -1007,10 +1167,11 @@ export default function Home() {
                                       </div>
                                     </div>
                                     <span
-                                      className={`text-xs font-bold px-3 py-1 rounded-lg ${n.status === "sent"
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                        }`}
+                                      className={`text-xs font-bold px-3 py-1 rounded-lg ${
+                                        n.status === "sent"
+                                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                      }`}
                                     >
                                       {n.status === "sent"
                                         ? "✓ Sent"
@@ -1051,76 +1212,120 @@ export default function Home() {
                     {currentStage === "FEEDBACK" && (
                       <div className="space-y-8">
                         <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
-                          <h3 className="text-2xl font-bold">
-                            Team Feedback
-                          </h3>
-                          <span className="text-xs text-zinc-400 animate-pulse">● Live</span>
+                          <h3 className="text-2xl font-bold">Team Feedback</h3>
+                          <span className="text-xs text-zinc-400 animate-pulse">
+                            ● Live
+                          </span>
                         </div>
 
                         <p className="text-sm text-zinc-500">
-                          Awaiting responses from team members for <span className="font-semibold text-zinc-700 dark:text-zinc-300">{currentProject?.name}</span>
+                          Awaiting responses from team members for{" "}
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                            {currentProject?.name}
+                          </span>
                         </p>
 
                         {/* Progress bar */}
-                        {feedbackResults.filter((c: any) => c.match >= 20).length > 0 && (
+                        {feedbackResults.filter((c: any) => c.match >= 20)
+                          .length > 0 && (
                           <div>
                             <div className="flex justify-between text-xs text-zinc-500 mb-2">
-                              <span>{feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length} of {feedbackResults.filter((c: any) => c.match >= 20).length} responded</span>
-                              <span>{Math.round((feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length / feedbackResults.filter((c: any) => c.match >= 20).length) * 100)}%</span>
+                              <span>
+                                {
+                                  feedbackResults.filter(
+                                    (c: any) =>
+                                      c.match >= 20 && c.feedbackResponse,
+                                  ).length
+                                }{" "}
+                                of{" "}
+                                {
+                                  feedbackResults.filter(
+                                    (c: any) => c.match >= 20,
+                                  ).length
+                                }{" "}
+                                responded
+                              </span>
+                              <span>
+                                {Math.round(
+                                  (feedbackResults.filter(
+                                    (c: any) =>
+                                      c.match >= 20 && c.feedbackResponse,
+                                  ).length /
+                                    feedbackResults.filter(
+                                      (c: any) => c.match >= 20,
+                                    ).length) *
+                                    100,
+                                )}
+                                %
+                              </span>
                             </div>
                             <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                                style={{ width: `${(feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length / feedbackResults.filter((c: any) => c.match >= 20).length) * 100}%` }}
+                                style={{
+                                  width: `${(feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length / feedbackResults.filter((c: any) => c.match >= 20).length) * 100}%`,
+                                }}
                               />
                             </div>
                           </div>
                         )}
 
                         <div className="space-y-3">
-                          {feedbackResults.filter((c: any) => c.match >= 20).map((candidate: any) => (
-                            <div
-                              key={candidate.id}
-                              className="p-5 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-lg">
-                                    👤
+                          {feedbackResults
+                            .filter((c: any) => c.match >= 20)
+                            .map((candidate: any) => (
+                              <div
+                                key={candidate.id}
+                                className="p-5 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-lg">
+                                      👤
+                                    </div>
+                                    <div>
+                                      <p className="font-bold text-sm">
+                                        {candidate.name}
+                                      </p>
+                                      <p className="text-xs text-zinc-500">
+                                        {candidate.role} · {candidate.match}%
+                                        match
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-bold text-sm">{candidate.name}</p>
-                                    <p className="text-xs text-zinc-500">{candidate.role} · {candidate.match}% match</p>
-                                  </div>
-                                </div>
-                                <span
-                                  className={`text-xs font-bold px-3 py-1 rounded-lg ${candidate.feedbackResponse === 'accepted'
-                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                      : candidate.feedbackResponse === 'declined'
-                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                  <span
+                                    className={`text-xs font-bold px-3 py-1 rounded-lg ${
+                                      candidate.feedbackResponse === "accepted"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : candidate.feedbackResponse ===
+                                            "declined"
+                                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                                     }`}
-                                >
-                                  {candidate.feedbackResponse === 'accepted'
-                                    ? '✓ Accepted'
-                                    : candidate.feedbackResponse === 'declined'
-                                      ? '✗ Declined'
-                                      : '⏳ Pending'}
-                                </span>
-                              </div>
-                              {candidate.feedbackComment && (
-                                <div className="mt-3 ml-13">
-                                  <p className="text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 py-3 italic">
-                                    &ldquo;{candidate.feedbackComment}&rdquo;
-                                  </p>
+                                  >
+                                    {candidate.feedbackResponse === "accepted"
+                                      ? "✓ Accepted"
+                                      : candidate.feedbackResponse ===
+                                          "declined"
+                                        ? "✗ Declined"
+                                        : "⏳ Pending"}
+                                  </span>
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                                {candidate.feedbackComment && (
+                                  <div className="mt-3 ml-13">
+                                    <p className="text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 py-3 italic">
+                                      &ldquo;{candidate.feedbackComment}&rdquo;
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                         </div>
 
                         {feedbackResults.length === 0 && (
-                          <p className="text-center text-zinc-400 py-12">No team members to show.</p>
+                          <p className="text-center text-zinc-400 py-12">
+                            No team members to show.
+                          </p>
                         )}
 
                         <div className="pt-4 text-center">
@@ -1143,7 +1348,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
             </motion.div>
-          ) : activeView === 'EMPLOYEES' ? (
+          ) : activeView === "EMPLOYEES" ? (
             <motion.div
               key="employees"
               initial={{ opacity: 0, x: 10 }}
@@ -1305,16 +1510,25 @@ export default function Home() {
                               className="text-xs font-bold text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 px-3 py-1 rounded-lg transition-colors disabled:opacity-50 relative"
                             >
                               Review
-                              {emp.pendingUpdates && Object.keys(emp.pendingUpdates).length > 0 && (
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full" />
-                              )}
+                              {emp.pendingUpdates &&
+                                Object.keys(emp.pendingUpdates).length > 0 && (
+                                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full" />
+                                )}
                             </button>
                             <button
                               onClick={() => handleSendLink(emp)}
-                              disabled={sendLinkStatus[emp.id] === 'sending'}
+                              disabled={sendLinkStatus[emp.id] === "sending"}
                               className="text-xs font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
                             >
-                              {sendLinkStatus[emp.id] === 'sending' ? 'Sending...' : sendLinkStatus[emp.id] === 'sent' ? 'Sent ✓' : sendLinkStatus[emp.id] === 'copied' ? 'Link copied ✓' : sendLinkStatus[emp.id] === 'error' ? 'Failed' : 'Send Link'}
+                              {sendLinkStatus[emp.id] === "sending"
+                                ? "Sending..."
+                                : sendLinkStatus[emp.id] === "sent"
+                                  ? "Sent ✓"
+                                  : sendLinkStatus[emp.id] === "copied"
+                                    ? "Link copied ✓"
+                                    : sendLinkStatus[emp.id] === "error"
+                                      ? "Failed"
+                                      : "Send Link"}
                             </button>
                           </div>
                         </td>
@@ -1741,85 +1955,135 @@ export default function Home() {
                       animate={{ scale: 1, opacity: 1 }}
                       className="bg-white dark:bg-zinc-900 rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-zinc-200 dark:border-zinc-800 max-h-[85vh] overflow-y-auto"
                     >
-                      <h3 className="text-2xl font-bold mb-2">Complete Profile</h3>
+                      <h3 className="text-2xl font-bold mb-2">
+                        Complete Profile
+                      </h3>
                       <p className="text-sm text-zinc-500 mb-6">
-                        A few things would help us match{' '}
-                        <span className="font-bold">{gapsReview.employee.firstName} {gapsReview.employee.lastName}</span>{' '}
+                        A few things would help us match{" "}
+                        <span className="font-bold">
+                          {gapsReview.employee.firstName}{" "}
+                          {gapsReview.employee.lastName}
+                        </span>{" "}
                         to projects more accurately.
                       </p>
 
-                      {gapsReview.employee.pendingUpdates && Object.keys(gapsReview.employee.pendingUpdates).length > 0 && (
-                        <div className="space-y-3 mb-6">
-                          <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400">From employee uploads</h4>
-                          {Object.entries(gapsReview.employee.pendingUpdates).map(([field, p]: [string, any]) => {
-                            const value = Array.isArray(p.value) ? p.value.join(', ') : p.value;
-                            return (
-                              <div key={field} className="flex items-start gap-2 p-3 rounded-xl border border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10">
-                                <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded mt-0.5">NEW</span>
-                                <div className="flex-1">
-                                  <p className="text-sm font-bold">{field}: <span className="font-normal">{value}</span></p>
-                                  <p className="text-xs text-zinc-500">From {p.source} · confidence {Math.round(p.confidence)}% · {p.reasoning}</p>
+                      {gapsReview.employee.pendingUpdates &&
+                        Object.keys(gapsReview.employee.pendingUpdates).length >
+                          0 && (
+                          <div className="space-y-3 mb-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                              From employee uploads
+                            </h4>
+                            {Object.entries(
+                              gapsReview.employee.pendingUpdates,
+                            ).map(([field, p]: [string, any]) => {
+                              const value = Array.isArray(p.value)
+                                ? p.value.join(", ")
+                                : p.value;
+                              return (
+                                <div
+                                  key={field}
+                                  className="flex items-start gap-2 p-3 rounded-xl border border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10"
+                                >
+                                  <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded mt-0.5">
+                                    NEW
+                                  </span>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-bold">
+                                      {field}:{" "}
+                                      <span className="font-normal">
+                                        {value}
+                                      </span>
+                                    </p>
+                                    <p className="text-xs text-zinc-500">
+                                      From {p.source} · confidence{" "}
+                                      {Math.round(p.confidence)}% ·{" "}
+                                      {p.reasoning}
+                                    </p>
+                                  </div>
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handlePendingDecision(field, true)
+                                      }
+                                      className="text-xs font-bold text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 px-2 py-1 rounded-lg"
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handlePendingDecision(field, false)
+                                      }
+                                      className="text-xs font-bold text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg"
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
                                 </div>
-                                <div className="flex gap-1 flex-shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => handlePendingDecision(field, true)}
-                                    className="text-xs font-bold text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 px-2 py-1 rounded-lg"
-                                  >
-                                    Accept
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handlePendingDecision(field, false)}
-                                    className="text-xs font-bold text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg"
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                              );
+                            })}
+                          </div>
+                        )}
 
                       <div className="space-y-5 mb-6">
                         {gapsReview.gaps.map((gap: any) => {
-                          const skipped = gapsReview.skipped.includes(gap.field);
+                          const skipped = gapsReview.skipped.includes(
+                            gap.field,
+                          );
                           return (
-                            <div key={gap.field} className={skipped ? 'opacity-40' : ''}>
-                              <label className="text-sm font-bold mb-1 block">{gap.question}</label>
+                            <div
+                              key={gap.field}
+                              className={skipped ? "opacity-40" : ""}
+                            >
+                              <label className="text-sm font-bold mb-1 block">
+                                {gap.question}
+                              </label>
                               {gap.reasoning && (
-                                <p className="text-xs text-zinc-400 mb-2">{gap.reasoning}</p>
+                                <p className="text-xs text-zinc-400 mb-2">
+                                  {gap.reasoning}
+                                </p>
                               )}
                               <div className="flex gap-2">
                                 {gap.options && gap.options.length > 0 ? (
                                   <select
-                                    value={gapsReview.answers[gap.field] || ''}
-                                    onChange={(e) => setGapAnswer(gap.field, e.target.value)}
+                                    value={gapsReview.answers[gap.field] || ""}
+                                    onChange={(e) =>
+                                      setGapAnswer(gap.field, e.target.value)
+                                    }
                                     disabled={skipped}
                                     className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                                   >
                                     <option value="">— Select —</option>
                                     {gap.options.map((opt: string) => (
-                                      <option key={opt} value={opt}>{opt}</option>
+                                      <option key={opt} value={opt}>
+                                        {opt}
+                                      </option>
                                     ))}
                                   </select>
                                 ) : (
                                   <input
                                     type="text"
-                                    value={gapsReview.answers[gap.field] || ''}
-                                    onChange={(e) => setGapAnswer(gap.field, e.target.value)}
+                                    value={gapsReview.answers[gap.field] || ""}
+                                    onChange={(e) =>
+                                      setGapAnswer(gap.field, e.target.value)
+                                    }
                                     disabled={skipped}
-                                    placeholder={ARRAY_FIELDS.includes(gap.field) ? 'Comma separated' : ''}
+                                    placeholder={
+                                      ARRAY_FIELDS.includes(gap.field)
+                                        ? "Comma separated"
+                                        : ""
+                                    }
                                     className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                                   />
                                 )}
                                 <button
                                   type="button"
                                   onClick={() => toggleSkipGap(gap.field)}
-                                  className={`text-xs font-bold px-3 rounded-xl border transition-colors ${skipped ? 'border-blue-500 text-blue-500' : 'border-zinc-200 dark:border-zinc-800 text-zinc-400'}`}
+                                  className={`text-xs font-bold px-3 rounded-xl border transition-colors ${skipped ? "border-blue-500 text-blue-500" : "border-zinc-200 dark:border-zinc-800 text-zinc-400"}`}
                                 >
-                                  {skipped ? 'Skipped' : 'Skip'}
+                                  {skipped ? "Skipped" : "Skip"}
                                 </button>
                               </div>
                             </div>
@@ -1848,7 +2112,7 @@ export default function Home() {
                 )}
               </AnimatePresence>
             </motion.div>
-          ) : (
+          ) : activeView === "SETTINGS" ? (
             <motion.div
               key="settings"
               initial={{ opacity: 0, x: 10 }}
@@ -1857,10 +2121,13 @@ export default function Home() {
               transition={{ duration: 0.2 }}
             >
               <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tighter mb-1">Organization Settings</h1>
+                <h1 className="text-3xl font-bold tracking-tighter mb-1">
+                  Organization Settings
+                </h1>
                 <p className="text-zinc-500 text-sm">
-                  Defines who you are and what you bid on. Used to qualify inbound tenders and to
-                  parameterize the outbound tender search.
+                  Defines who you are and what you bid on. Used to qualify
+                  inbound tenders and to parameterize the outbound tender
+                  search.
                 </p>
               </div>
 
@@ -1872,19 +2139,27 @@ export default function Home() {
                   <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
                     <h2 className="text-lg font-bold">Company</h2>
                     <div>
-                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">Company name</label>
+                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">
+                        Company name
+                      </label>
                       <input
                         type="text"
-                        value={orgSettings.companyName || ''}
-                        onChange={(e) => setOrgField('companyName', e.target.value)}
+                        value={orgSettings.companyName || ""}
+                        onChange={(e) =>
+                          setOrgField("companyName", e.target.value)
+                        }
                         className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">What we do</label>
+                      <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">
+                        What we do
+                      </label>
                       <textarea
-                        value={orgSettings.description || ''}
-                        onChange={(e) => setOrgField('description', e.target.value)}
+                        value={orgSettings.description || ""}
+                        onChange={(e) =>
+                          setOrgField("description", e.target.value)
+                        }
                         rows={3}
                         className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                       />
@@ -1894,19 +2169,28 @@ export default function Home() {
                   {/* Capabilities — qualification inputs */}
                   <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
                     <h2 className="text-lg font-bold">Capabilities & scope</h2>
-                    <p className="text-xs text-zinc-500 -mt-2">Comma-separated. These are matched against each tender to decide bid / no-bid.</p>
+                    <p className="text-xs text-zinc-500 -mt-2">
+                      Comma-separated. These are matched against each tender to
+                      decide bid / no-bid.
+                    </p>
                     {[
-                      { field: 'coreCompetencies', label: 'Core competencies' },
-                      { field: 'industries', label: 'Industries served' },
-                      { field: 'geographies', label: 'Geographies' },
-                      { field: 'certifications', label: 'Certifications held' },
-                      { field: 'languages', label: 'Languages' },
+                      { field: "coreCompetencies", label: "Core competencies" },
+                      { field: "industries", label: "Industries served" },
+                      { field: "geographies", label: "Geographies" },
+                      { field: "certifications", label: "Certifications held" },
+                      { field: "languages", label: "Languages" },
                     ].map(({ field, label }) => (
                       <div key={field}>
-                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">
+                          {label}
+                        </label>
                         <input
                           type="text"
-                          value={Array.isArray(orgSettings[field]) ? orgSettings[field].join(', ') : (orgSettings[field] || '')}
+                          value={
+                            Array.isArray(orgSettings[field])
+                              ? orgSettings[field].join(", ")
+                              : orgSettings[field] || ""
+                          }
                           onChange={(e) => setOrgField(field, e.target.value)}
                           className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                         />
@@ -1914,15 +2198,17 @@ export default function Home() {
                     ))}
                     <div className="grid grid-cols-3 gap-4">
                       {[
-                        { field: 'minContractValue', label: 'Min value (€)' },
-                        { field: 'maxContractValue', label: 'Max value (€)' },
-                        { field: 'maxTeamSize', label: 'Max team size' },
+                        { field: "minContractValue", label: "Min value (€)" },
+                        { field: "maxContractValue", label: "Max value (€)" },
+                        { field: "maxTeamSize", label: "Max team size" },
                       ].map(({ field, label }) => (
                         <div key={field}>
-                          <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                          <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">
+                            {label}
+                          </label>
                           <input
                             type="number"
-                            value={orgSettings[field] ?? ''}
+                            value={orgSettings[field] ?? ""}
                             onChange={(e) => setOrgField(field, e.target.value)}
                             className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                           />
@@ -1933,18 +2219,35 @@ export default function Home() {
 
                   {/* Outbound search + no-bid rules */}
                   <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
-                    <h2 className="text-lg font-bold">Outbound search & exclusions</h2>
-                    <p className="text-xs text-zinc-500 -mt-2">Comma-separated. Seeds the tender crawl; exclusions are hard no-bid rules.</p>
+                    <h2 className="text-lg font-bold">
+                      Outbound search & exclusions
+                    </h2>
+                    <p className="text-xs text-zinc-500 -mt-2">
+                      Comma-separated. Seeds the tender crawl; exclusions are
+                      hard no-bid rules.
+                    </p>
                     {[
-                      { field: 'keywords', label: 'Search keywords' },
-                      { field: 'cpvCodes', label: 'CPV codes (EU public tenders)' },
-                      { field: 'exclusionCriteria', label: 'Exclusion criteria (never bid)' },
+                      { field: "keywords", label: "Search keywords" },
+                      {
+                        field: "cpvCodes",
+                        label: "CPV codes (EU public tenders)",
+                      },
+                      {
+                        field: "exclusionCriteria",
+                        label: "Exclusion criteria (never bid)",
+                      },
                     ].map(({ field, label }) => (
                       <div key={field}>
-                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">{label}</label>
+                        <label className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-1 block">
+                          {label}
+                        </label>
                         <input
                           type="text"
-                          value={Array.isArray(orgSettings[field]) ? orgSettings[field].join(', ') : (orgSettings[field] || '')}
+                          value={
+                            Array.isArray(orgSettings[field])
+                              ? orgSettings[field].join(", ")
+                              : orgSettings[field] || ""
+                          }
                           onChange={(e) => setOrgField(field, e.target.value)}
                           className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm"
                         />
@@ -1958,15 +2261,431 @@ export default function Home() {
                       disabled={isSavingSettings}
                       className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
-                      {isSavingSettings ? 'Saving...' : 'Save Settings'}
+                      {isSavingSettings ? "Saving..." : "Save Settings"}
                     </button>
-                    {settingsSaved && <span className="text-sm text-green-600">Saved ✓</span>}
+                    {settingsSaved && (
+                      <span className="text-sm text-green-600">Saved ✓</span>
+                    )}
                     {orgSettings.updatedAt && (
-                      <span className="text-xs text-zinc-400">Last updated {new Date(orgSettings.updatedAt).toLocaleString()}</span>
+                      <span className="text-xs text-zinc-400">
+                        Last updated{" "}
+                        {new Date(orgSettings.updatedAt).toLocaleString()}
+                      </span>
                     )}
                   </div>
                 </div>
               )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="discover"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Header */}
+              <div className="mb-8 flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tighter mb-1">
+                    Tender Discovery
+                  </h1>
+                  <p className="text-zinc-500 text-sm">
+                    Searches the EU TED portal for open tenders matching your
+                    org profile, then ranks them with AI.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <label className="font-medium">Days back</label>
+                    <input
+                      type="number"
+                      value={discoverDaysBack}
+                      min={7}
+                      max={365}
+                      onChange={(e) =>
+                        setDiscoverDaysBack(Number(e.target.value))
+                      }
+                      className="w-20 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-1 text-sm text-center"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <label className="font-medium">Results</label>
+                    <select
+                      value={discoverLimit}
+                      onChange={(e) => setDiscoverLimit(Number(e.target.value))}
+                      className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-1 text-sm"
+                    >
+                      {[10, 20, 50].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={handleDiscover}
+                    disabled={isDiscovering || !orgSettings}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm px-5 py-2 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    {isDiscovering ? (
+                      <>
+                        <svg
+                          className="animate-spin h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          />
+                        </svg>
+                        Searching & Ranking…
+                      </>
+                    ) : (
+                      "⚡ Search & Rank Tenders"
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error */}
+              {discoverError && (
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400">
+                  {discoverError}
+                </div>
+              )}
+
+              {/* Loading skeleton */}
+              {isDiscovering && (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="animate-pulse h-32 bg-zinc-100 dark:bg-zinc-800 rounded-2xl"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Results */}
+              {!isDiscovering && discoverResults.length > 0 && (
+                <div className="space-y-10">
+                  {/* ── TOP 3 DASHBOARD ── */}
+                  <section>
+                    <div className="flex items-center gap-2 mb-4">
+                      <h2 className="text-lg font-bold">Top 3 Opportunities</h2>
+                      <span className="text-xs text-zinc-400">
+                        ({discoverTotal} notices searched)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {discoverResults
+                        .slice(0, 3)
+                        .map((item: any, idx: number) => {
+                          const medals = ["🥇", "🥈", "🥉"];
+                          const scoreColor =
+                            item.score >= 7
+                              ? "text-green-600 dark:text-green-400"
+                              : item.score >= 4
+                                ? "text-yellow-600 dark:text-yellow-400"
+                                : "text-red-500";
+                          return (
+                            <div
+                              key={item.notice_id}
+                              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col gap-3 shadow-sm"
+                            >
+                              {/* Rank + score */}
+                              <div className="flex items-center justify-between">
+                                <span className="text-2xl">{medals[idx]}</span>
+                                <div
+                                  className={`text-3xl font-black ${scoreColor}`}
+                                >
+                                  {item.score.toFixed(1)}
+                                  <span className="text-sm font-normal text-zinc-400">
+                                    /10
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Title */}
+                              <div>
+                                <p className="font-bold text-sm leading-snug">
+                                  {item.title_summary}
+                                </p>
+                                <p className="text-xs text-zinc-500 mt-0.5">
+                                  {item.hardware_type} · {item.country} ·{" "}
+                                  {item.publication_date?.slice(0, 10)}
+                                </p>
+                              </div>
+
+                              {/* Tags */}
+                              <div className="flex flex-wrap gap-1">
+                                <span className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full font-medium">
+                                  {item.estimated_value}
+                                </span>
+                                {item.cpv_codes
+                                  ?.slice(0, 2)
+                                  .map((c: string) => (
+                                    <span
+                                      key={c}
+                                      className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs px-2 py-0.5 rounded-full"
+                                    >
+                                      {c}
+                                    </span>
+                                  ))}
+                              </div>
+
+                              {/* Why bid */}
+                              <div className="bg-green-50 dark:bg-green-950/40 border border-green-100 dark:border-green-900 rounded-xl p-3">
+                                <p className="text-xs font-bold text-green-700 dark:text-green-400 mb-1">
+                                  Why we should bid
+                                </p>
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                                  {item.why_bid}
+                                </p>
+                              </div>
+
+                              {/* Why fits team */}
+                              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 rounded-xl p-3">
+                                <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-1">
+                                  Why this fits our team
+                                </p>
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                                  {item.why_fits_team}
+                                </p>
+                              </div>
+
+                              {/* Reasoning */}
+                              <p className="text-xs text-zinc-500 italic">
+                                {item.reasoning}
+                              </p>
+
+                              {/* Buyer info enriched by Tavily */}
+                              {item.buyer_info?.summary && (
+                                <div className="border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 rounded-xl p-3 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-xs font-bold text-violet-800 dark:text-violet-300 flex items-center gap-1.5">
+                                      🏢 {item.client_name}
+                                    </p>
+                                    <span className="text-[10px] font-bold bg-violet-100 dark:bg-violet-900 text-violet-600 dark:text-violet-300 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-700 tracking-wide">
+                                      via Tavily
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                                    {item.buyer_info.summary}
+                                  </p>
+                                  {item.buyer_info.sources?.length > 0 && (
+                                    <div className="space-y-0.5 pt-1 border-t border-violet-100 dark:border-violet-800">
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-violet-500 mb-1">
+                                        Sources
+                                      </p>
+                                      {item.buyer_info.sources
+                                        .slice(0, 3)
+                                        .map((src: string, si: number) => (
+                                          <a
+                                            key={si}
+                                            href={src}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[10px] text-blue-500 hover:underline block truncate"
+                                          >
+                                            {src}
+                                          </a>
+                                        ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Actions */}
+                              <div className="flex gap-2 mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                                <button
+                                  onClick={() => handleAnalyzeTender(item)}
+                                  disabled={analyzingTenderId !== null}
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                >
+                                  {analyzingTenderId === item.notice_id ? (
+                                    <>
+                                      <svg
+                                        className="animate-spin h-3 w-3"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                      >
+                                        <circle
+                                          className="opacity-25"
+                                          cx="12"
+                                          cy="12"
+                                          r="10"
+                                          stroke="currentColor"
+                                          strokeWidth="4"
+                                        />
+                                        <path
+                                          className="opacity-75"
+                                          fill="currentColor"
+                                          d="M4 12a8 8 0 018-8v8H4z"
+                                        />
+                                      </svg>
+                                      Analyzing…
+                                    </>
+                                  ) : (
+                                    "Run Pipeline →"
+                                  )}
+                                </button>
+                                {item.html_link && (
+                                  <a
+                                    href={item.html_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 font-medium py-2 px-3 border border-zinc-200 dark:border-zinc-700 rounded-lg transition-colors whitespace-nowrap"
+                                  >
+                                    View →
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-3 text-center">
+                      Not satisfied? Adjust the search parameters above and
+                      click <strong>Search & Rank Tenders</strong> again.
+                    </p>
+                  </section>
+
+                  {/* ── FULL RANKINGS TABLE ── */}
+                  <section>
+                    <h2 className="text-lg font-bold mb-4">All Rankings</h2>
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-zinc-100 dark:border-zinc-800 text-left">
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400 w-10">
+                              #
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400">
+                              Tender
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400">
+                              Client
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400">
+                              Hardware
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400">
+                              Value
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400 text-center">
+                              Score
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400">
+                              Reasoning
+                            </th>
+                            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400 w-16"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {discoverResults.map((item: any) => {
+                            const scoreColor = item.is_excluded
+                              ? "text-red-400"
+                              : item.score >= 7
+                                ? "text-green-600 dark:text-green-400"
+                                : item.score >= 4
+                                  ? "text-yellow-600 dark:text-yellow-400"
+                                  : "text-red-500";
+                            return (
+                              <tr
+                                key={item.notice_id}
+                                className={`border-b border-zinc-50 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors ${item.is_excluded ? "opacity-40" : ""}`}
+                              >
+                                <td className="px-4 py-3 text-zinc-400 font-mono text-xs">
+                                  {item.rank}
+                                </td>
+                                <td className="px-4 py-3 max-w-xs">
+                                  <p className="font-medium text-xs leading-snug line-clamp-2">
+                                    {item.title_summary}
+                                  </p>
+                                  <p className="text-zinc-400 text-xs mt-0.5">
+                                    {item.country} ·{" "}
+                                    {item.publication_date?.slice(0, 10)}
+                                  </p>
+                                  {item.is_excluded && (
+                                    <span className="inline-block mt-1 text-xs bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">
+                                      Excluded: {item.exclusion_reason}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400 max-w-[120px] truncate">
+                                  {item.client_name}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400 max-w-[120px] truncate">
+                                  {item.hardware_type}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
+                                  {item.estimated_value}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span
+                                    className={`text-base font-black ${scoreColor}`}
+                                  >
+                                    {item.score.toFixed(1)}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-xs text-zinc-500 max-w-xs">
+                                  <p className="line-clamp-2">
+                                    {item.reasoning}
+                                  </p>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {item.html_link && (
+                                    <a
+                                      href={item.html_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-500 hover:underline whitespace-nowrap"
+                                    >
+                                      View →
+                                    </a>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!isDiscovering &&
+                discoverResults.length === 0 &&
+                !discoverError && (
+                  <div className="text-center py-24 text-zinc-400">
+                    <div className="text-5xl mb-4">🔍</div>
+                    <p className="font-medium">No results yet.</p>
+                    <p className="text-sm mt-1">
+                      Click <strong>Search & Rank Tenders</strong> to find
+                      matching EU public tenders.
+                    </p>
+                    {!orgSettings?.cpvCodes?.length && (
+                      <p className="text-xs mt-3 text-amber-500">
+                        Tip: Add CPV codes in Org Settings to narrow results to
+                        your exact domain.
+                      </p>
+                    )}
+                  </div>
+                )}
             </motion.div>
           )}
         </AnimatePresence>
