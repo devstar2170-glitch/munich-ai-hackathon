@@ -5,11 +5,13 @@ The Next.js frontend at localhost:3000 calls this server.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -154,6 +156,59 @@ async def extract_cv(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to parse CV extraction response: {e}")
 
     return {"status": "success", "data": data}
+@app.post("/api/analyze-multi")
+async def analyze_rfq_multi(files: List[UploadFile] = File(...)):
+    """Accept multiple files belonging to the same RFP, analyze and merge into one result.
+
+    All files are treated as parts of a single RFP document — not separate RFPs.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    agent = _build_agent()
+    tmp_paths: list[str] = []
+    analyses = []
+
+    try:
+        for file in files:
+            suffix = Path(file.filename or "rfp.pdf").suffix or ".pdf"
+            content = await file.read()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(content)
+                tmp_paths.append(tmp.name)
+
+        try:
+            analyses = await asyncio.gather(
+                *[asyncio.to_thread(agent.analyze_file, p) for p in tmp_paths]
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
+    finally:
+        for p in tmp_paths:
+            Path(p).unlink(missing_ok=True)
+
+    merged = analyses[0] if len(analyses) == 1 else agent._merge_partial_analyses(
+        [a.model_dump() for a in analyses]
+    )
+
+    frontend = _to_frontend_shape(merged)
+    return {
+        **frontend,
+        "rfp_title": merged.rfp_title,
+        "client_name": merged.client_name,
+        "rfp_summary": merged.rfp_summary,
+        "submission_deadline": merged.submission_deadline,
+        "project_duration": merged.project_duration,
+        "budget_constraints": merged.budget_constraints,
+        "confidence_score": merged.confidence_score,
+        "deadlines": [d.model_dump() for d in merged.deadlines],
+        "risks": [r.model_dump() for r in merged.risks],
+        "dependencies": [d.model_dump() for d in merged.dependencies],
+        "compliance_norms": [c.model_dump() for c in merged.compliance_norms],
+        "key_evaluation_criteria": merged.key_evaluation_criteria,
+        "pitfalls": merged.pitfalls,
+        "planning_payload": agent.to_planning_agent_payload(merged),
+    }
 
 
 class ProfileGap(BaseModel):

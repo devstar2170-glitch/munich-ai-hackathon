@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
 
@@ -9,8 +10,15 @@ from google import genai
 from google.genai import types
 
 from .document_loader import load_document
-from .models import RFPAnalysis
-from .prompts import ANALYSIS_PROMPT, MERGE_PROMPT, SYSTEM_PROMPT
+from .models import RFPAnalysis, RFPPartA, RFPPartB, RFPPartC
+from .prompts import (
+    ANALYSIS_PROMPT,
+    ANALYSIS_PROMPT_A,
+    ANALYSIS_PROMPT_B,
+    ANALYSIS_PROMPT_C,
+    MERGE_PROMPT,
+    SYSTEM_PROMPT,
+)
 
 # Gemini 2.0 Flash has a 1M token context; ~4 chars/token → ~700K chars safe limit per call
 _MAX_CHARS_PER_CALL = 700_000
@@ -38,11 +46,28 @@ class RFPAnalysisAgent:
 
         self._client = genai.Client(api_key=key)
         self._model_name = model
-        self._gen_config = types.GenerateContentConfig(
+
+        _base = dict(
             system_instruction=SYSTEM_PROMPT,
             response_mime_type="application/json",
+            temperature=0.1,
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
+        )
+        # Full-schema config (used for chunked merge and vision fallback)
+        self._gen_config = types.GenerateContentConfig(
+            **_base,
             response_schema=RFPAnalysis,
-            temperature=0.1,  # low temp for deterministic factual extraction
+            max_output_tokens=65536,
+        )
+        # Per-part configs for parallel analysis
+        self._gen_config_a = types.GenerateContentConfig(
+            **_base, response_schema=RFPPartA, max_output_tokens=32768
+        )
+        self._gen_config_b = types.GenerateContentConfig(
+            **_base, response_schema=RFPPartB, max_output_tokens=16384
+        )
+        self._gen_config_c = types.GenerateContentConfig(
+            **_base, response_schema=RFPPartC, max_output_tokens=16384
         )
 
     # ------------------------------------------------------------------
@@ -53,20 +78,22 @@ class RFPAnalysisAgent:
         """Analyze an RFP from a file path (PDF, DOCX, TXT, MD)."""
         path = Path(file_path)
 
-        # PDFs: prefer Gemini's native file understanding (handles tables, layouts)
-        if path.suffix.lower() == ".pdf":
-            try:
-                return self._analyze_pdf_native(path)
-            except Exception as e:
-                print(f"[warn] Native PDF analysis failed ({e}), falling back to text extraction")
-
+        # Extract text locally first — much faster than Gemini's vision pipeline.
+        # Fall back to native PDF (vision) only for scanned PDFs with no extractable text.
         text, _ = load_document(file_path)
-        return self.analyze_text(text)
+        if text.strip():
+            return self.analyze_text(text)
+
+        if path.suffix.lower() == ".pdf":
+            print(f"[info] No text extracted from {path.name}, falling back to Gemini vision pipeline")
+            return self._analyze_pdf_native(path)
+
+        raise ValueError(f"Could not extract any text from {file_path}")
 
     def analyze_text(self, rfp_text: str) -> RFPAnalysis:
         """Analyze raw RFP text. Handles documents of any length via chunking."""
         if len(rfp_text) <= _MAX_CHARS_PER_CALL:
-            return self._call_model(rfp_text)
+            return self._call_model_parallel(rfp_text)
         return self._analyze_chunked(rfp_text)
 
     def to_planning_agent_payload(self, analysis: RFPAnalysis) -> dict:
@@ -94,6 +121,64 @@ class RFPAnalysisAgent:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _call_model_parallel(self, rfp_content: str) -> RFPAnalysis:
+        """Run 3 focused extraction calls in parallel, then combine into RFPAnalysis."""
+        print("[info] Running parallel extraction (3 concurrent Gemini calls)...")
+
+        def call_a() -> RFPPartA:
+            r = self._client.models.generate_content(
+                model=self._model_name,
+                contents=ANALYSIS_PROMPT_A.format(rfp_content=rfp_content),
+                config=self._gen_config_a,
+            )
+            return RFPPartA(**json.loads(r.text))
+
+        def call_b() -> RFPPartB:
+            r = self._client.models.generate_content(
+                model=self._model_name,
+                contents=ANALYSIS_PROMPT_B.format(rfp_content=rfp_content),
+                config=self._gen_config_b,
+            )
+            return RFPPartB(**json.loads(r.text))
+
+        def call_c() -> RFPPartC:
+            r = self._client.models.generate_content(
+                model=self._model_name,
+                contents=ANALYSIS_PROMPT_C.format(rfp_content=rfp_content),
+                config=self._gen_config_c,
+            )
+            return RFPPartC(**json.loads(r.text))
+
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            fa = pool.submit(call_a)
+            fb = pool.submit(call_b)
+            fc = pool.submit(call_c)
+            part_a = fa.result()
+            part_b = fb.result()
+            part_c = fc.result()
+
+        print("[info] Parallel extraction complete. Combining parts...")
+        return RFPAnalysis(
+            rfp_title=part_a.rfp_title,
+            client_name=part_a.client_name,
+            rfp_summary=part_a.rfp_summary,
+            project_scope=part_a.project_scope,
+            submission_deadline=part_a.submission_deadline,
+            project_duration=part_a.project_duration,
+            estimated_team_size=part_a.estimated_team_size,
+            budget_constraints=part_a.budget_constraints,
+            requirements=part_a.requirements,
+            key_evaluation_criteria=part_a.key_evaluation_criteria,
+            skills_required=part_b.skills_required,
+            deadlines=part_b.deadlines,
+            dependencies=part_b.dependencies,
+            risks=part_c.risks,
+            compliance_norms=part_c.compliance_norms,
+            pitfalls=part_c.pitfalls,
+            analysis_notes=part_c.analysis_notes,
+            confidence_score=part_c.confidence_score,
+        )
 
     def _analyze_pdf_native(self, path: Path) -> RFPAnalysis:
         """Upload PDF to Gemini Files API for native multi-modal understanding."""
