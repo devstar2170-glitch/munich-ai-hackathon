@@ -328,13 +328,12 @@ export default function Home() {
                       className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-950 px-4"
                     >
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                          isActive
-                            ? "border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20"
-                            : isCompleted
-                              ? "border-green-500 bg-green-500 text-white"
-                              : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                        }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive
+                          ? "border-blue-500 bg-blue-500 text-white scale-110 shadow-lg shadow-blue-500/20"
+                          : isCompleted
+                            ? "border-green-500 bg-green-500 text-white"
+                            : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                          }`}
                       >
                         {isCompleted ? "✓" : index + 1}
                       </div>
@@ -535,38 +534,113 @@ export default function Home() {
                           </h3>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {matchCandidates.map((candidate) => (
-                            <div
-                              key={candidate.id}
-                              className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50"
-                            >
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-                                  👤
-                                </div>
-                                <span className="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-lg font-bold">
-                                  {candidate.match}%
-                                </span>
-                              </div>
-                              <h4 className="font-bold mb-1">
-                                {candidate.name}
-                              </h4>
-                              <p className="text-xs text-zinc-500 mb-4 italic">
-                                "{candidate.reason}"
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {candidate.skills.map((s: string) => (
+                        {/* Required Skills from RFP */}
+                        {currentProject?.requirements?.length > 0 && (
+                          <div className="mb-6 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/50">
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                              Project Requirements
+                            </h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {currentProject.requirements.map(
+                                (req: string, i: number) => (
                                   <span
-                                    key={s}
-                                    className="bg-white dark:bg-zinc-800 text-[9px] px-2 py-0.5 rounded border border-zinc-100 dark:border-zinc-700"
+                                    key={i}
+                                    className="bg-zinc-200 dark:bg-zinc-800 text-[10px] px-2.5 py-1 rounded-lg font-medium text-zinc-700 dark:text-zinc-300"
                                   >
-                                    {s}
+                                    {req}
                                   </span>
-                                ))}
-                              </div>
+                                ),
+                              )}
                             </div>
-                          ))}
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {matchCandidates
+                            .filter((candidate) => candidate.match > 0)
+                            .map((candidate) => {
+                              const pct = candidate.match;
+                              const matchColor =
+                                pct >= 75
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : pct >= 50
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                    : pct >= 25
+                                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+
+                              const barColor =
+                                pct >= 75
+                                  ? "bg-green-500"
+                                  : pct >= 50
+                                    ? "bg-blue-500"
+                                    : pct >= 25
+                                      ? "bg-orange-500"
+                                      : "bg-red-500";
+
+                              return (
+                                <div
+                                  key={candidate.id}
+                                  className="p-6 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50 flex flex-col"
+                                >
+                                  <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+                                        👤
+                                      </div>
+                                      <div>
+                                        <h4 className="font-bold text-sm">
+                                          {candidate.name}
+                                        </h4>
+                                        <p className="text-[11px] text-zinc-500">
+                                          {candidate.role}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <span
+                                      className={`${matchColor} text-[10px] px-2 py-1 rounded-lg font-bold`}
+                                    >
+                                      {candidate.match}%
+                                    </span>
+                                  </div>
+
+                                  {/* Match bar */}
+                                  <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full mb-4 overflow-hidden">
+                                    <div
+                                      className={`h-full ${barColor} rounded-full transition-all`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+
+                                  {/* Reason */}
+                                  <div className="bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-3 mb-4">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                      Why this match
+                                    </p>
+                                    <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                                      {candidate.reason}
+                                    </p>
+                                  </div>
+
+                                  {/* Matching skills */}
+                                  <div className="mt-auto">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                                      Relevant Skills
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {candidate.skills.map((s: string) => (
+                                        <span
+                                          key={s}
+                                          className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-[10px] px-2 py-0.5 rounded-md border border-green-200 dark:border-green-800 font-medium"
+                                        >
+                                          ✓ {s}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                         </div>
 
                         <div className="pt-8 text-center">
@@ -678,12 +752,12 @@ export default function Home() {
                                   ))}
                                 {(currentProject?.requirements || []).length >
                                   5 && (
-                                  <p className="text-xs text-zinc-400 italic">
-                                    ... and{" "}
-                                    {currentProject.requirements.length - 5}{" "}
-                                    more requirements
-                                  </p>
-                                )}
+                                    <p className="text-xs text-zinc-400 italic">
+                                      ... and{" "}
+                                      {currentProject.requirements.length - 5}{" "}
+                                      more requirements
+                                    </p>
+                                  )}
                               </div>
                             </div>
 
@@ -714,11 +788,10 @@ export default function Home() {
                                       </div>
                                     </div>
                                     <span
-                                      className={`text-xs font-bold px-3 py-1 rounded-lg ${
-                                        n.status === "sent"
-                                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                      }`}
+                                      className={`text-xs font-bold px-3 py-1 rounded-lg ${n.status === "sent"
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                        }`}
                                     >
                                       {n.status === "sent"
                                         ? "✓ Sent"
