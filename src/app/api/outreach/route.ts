@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
-import { getProjectById, getAllEmployees } from '@/lib/storage';
+import { getProjectById, getAllEmployees, saveProject } from '@/lib/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 function rfc2047Encode(str: string): string {
     return `=?UTF-8?B?${Buffer.from(str, 'utf-8').toString('base64')}?=`;
 }
 
-async function sendNtfy(topic: string, title: string, message: string, priority?: number) {
+async function sendNtfy(topic: string, title: string, message: string, options?: { priority?: number; click?: string }) {
+    const headers: Record<string, string> = {
+        'Title': rfc2047Encode(title),
+        'Priority': String(options?.priority ?? 3),
+    };
+    if (options?.click) {
+        headers['Click'] = options.click;
+        headers['Actions'] = `view, Open Feedback, ${options.click}`;
+    }
     const res = await fetch(`https://ntfy.sh/${topic}`, {
         method: 'POST',
-        headers: {
-            'Title': rfc2047Encode(title),
-            'Priority': String(priority ?? 3),
-        },
+        headers,
         body: message,
     });
     return res.ok;
@@ -32,11 +38,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
+        const baseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL || 'http://localhost:3000';
         const allEmployees = await getAllEmployees();
         const notifications: { id: string; name: string; role: string; status: 'sent' | 'failed' }[] = [];
 
         const pm = project.selectedPM;
         const projectName = project.name || 'Untitled Project';
+
+        // Generate feedback tokens for all candidates that don't have one yet
+        const updatedCandidates = project.matchCandidates.map(c => {
+            if (!c.feedbackToken) {
+                return { ...c, feedbackToken: uuidv4() };
+            }
+            return c;
+        });
+        const updatedProject = { ...project, matchCandidates: updatedCandidates };
+        await saveProject(updatedProject);
 
         // Build PM summary message
         const requirementsSummary = (project.requirements || [])
@@ -44,7 +61,7 @@ export async function POST(request: Request) {
             .map((r, i) => `${i + 1}. ${r}`)
             .join('\n');
 
-        const teamSummary = (project.matchCandidates || [])
+        const teamSummary = (updatedCandidates || [])
             .map((c: any) => `• ${c.name} (${c.role}) — ${c.match}% match — Skills: ${(c.skills || []).join(', ')}`)
             .join('\n');
 
@@ -58,7 +75,7 @@ export async function POST(request: Request) {
             '--- Matched Team ---',
             teamSummary,
             '',
-            `Total team members: ${(project.matchCandidates || []).length}`,
+            `Total team members: ${updatedCandidates.length}`,
         ].join('\n');
 
         // Send PM notification
@@ -68,7 +85,7 @@ export async function POST(request: Request) {
                 pmTopic,
                 `📋 You are PM for: ${projectName}`,
                 pmMessage,
-                4
+                { priority: 4 }
             );
             notifications.push({
                 id: pm.id,
@@ -78,8 +95,8 @@ export async function POST(request: Request) {
             });
         }
 
-        // Send employee notifications
-        for (const candidate of project.matchCandidates || []) {
+        // Send employee notifications with feedback link
+        for (const candidate of updatedCandidates) {
             // Skip if this candidate is the PM
             if (pm && candidate.id === pm.id) continue;
 
@@ -94,6 +111,7 @@ export async function POST(request: Request) {
                 continue;
             }
 
+            const feedbackUrl = `${baseUrl}/feedback/${candidate.feedbackToken}`;
             const topic = emailToTopic(employee.email);
             const message = [
                 `You have been selected to work on "${projectName}".`,
@@ -102,13 +120,15 @@ export async function POST(request: Request) {
                 `Match score: ${candidate.match}%`,
                 pm ? `Project Manager: ${pm.name} (${pm.email})` : '',
                 '',
-                'Please reach out to your PM for onboarding details.',
+                'Please confirm your availability:',
+                feedbackUrl,
             ].join('\n');
 
             const ok = await sendNtfy(
                 topic,
                 `🚀 New Project Assignment: ${projectName}`,
-                message
+                message,
+                { click: feedbackUrl }
             );
 
             notifications.push({
@@ -121,7 +141,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             status: 'success',
-            data: { notifications, pm },
+            data: { notifications, pm, project: updatedProject },
         });
     } catch (error) {
         console.error('Error in outreach:', error);
