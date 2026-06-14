@@ -14,6 +14,18 @@ export interface Qualification {
   rationale: string;
 }
 
+export interface MatchCandidate {
+  id: string;
+  name: string;
+  role: string;
+  match: number;
+  skills?: string[];
+  feedbackToken?: string;
+  feedbackResponse?: 'accepted' | 'declined' | null;
+  feedbackComment?: string;
+  feedbackFileUploaded?: string;
+}
+
 export interface ProjectState {
   id: string;
   name: string;
@@ -22,7 +34,7 @@ export interface ProjectState {
   requirements: string[];
   clarificationQuestion?: string;
   humanAnswer?: string;
-  matchCandidates: any[];
+  matchCandidates: MatchCandidate[];
   selectedPM?: { id: string; name: string; email: string; role: string };
   qualification?: Qualification;
   thoughtLog: string[];
@@ -120,13 +132,13 @@ export async function getAllEmployees(): Promise<Employee[]> {
 export async function saveEmployee(employee: Employee) {
   const employees = await getAllEmployees();
   const index = employees.findIndex(e => e.id === employee.id);
-  
+
   if (index !== -1) {
     employees[index] = employee;
   } else {
     employees.push(employee);
   }
-  
+
   await fs.writeFile(EMPLOYEES_FILE, JSON.stringify(employees, null, 2));
 }
 
@@ -143,6 +155,17 @@ export async function getAllProjects(): Promise<ProjectState[]> {
 export async function getProjectById(id: string): Promise<ProjectState | undefined> {
   const projects = await getAllProjects();
   return projects.find(p => p.id === id);
+}
+
+export async function getProjectByFeedbackToken(token: string): Promise<{ project: ProjectState; candidate: MatchCandidate } | undefined> {
+  const projects = await getAllProjects();
+  for (const project of projects) {
+    const candidate = project.matchCandidates.find(c => c.feedbackToken === token);
+    if (candidate) {
+      return { project, candidate };
+    }
+  }
+  return undefined;
 }
 
 export async function saveProject(project: ProjectState) {

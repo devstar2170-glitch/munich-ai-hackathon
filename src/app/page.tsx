@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 
-type Stage = "INGESTION" | "ANALYSIS" | "PLANNING" | "OUTREACH";
+type Stage = "INGESTION" | "ANALYSIS" | "PLANNING" | "OUTREACH" | "FEEDBACK";
 type View = "PIPELINE" | "EMPLOYEES" | "SETTINGS";
 
 const STAGES: { id: Stage; label: string }[] = [
@@ -12,6 +12,7 @@ const STAGES: { id: Stage; label: string }[] = [
   { id: "ANALYSIS", label: "Analysis & Clarification" },
   { id: "PLANNING", label: "Planning & Matchmaking" },
   { id: "OUTREACH", label: "Execution & Outreach" },
+  { id: "FEEDBACK", label: "Feedback" },
 ];
 
 export default function Home() {
@@ -27,6 +28,7 @@ export default function Home() {
     { id: string; name: string; role: string; status: string }[]
   >([]);
   const [isSendingOutreach, setIsSendingOutreach] = useState(false);
+  const [feedbackResults, setFeedbackResults] = useState<any[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,6 +52,38 @@ export default function Home() {
     fetchEmployees();
     fetchOrgSettings();
   }, []);
+
+  // Poll feedback when on FEEDBACK stage
+  const fetchFeedbackResults = useCallback(async () => {
+    if (!currentProject?.matchCandidates) return;
+    const candidates = currentProject.matchCandidates;
+    const updated = await Promise.all(
+      candidates.map(async (c: any) => {
+        if (!c.feedbackToken) return c;
+        try {
+          const res = await fetch(`/api/feedback/${c.feedbackToken}`);
+          const data = await res.json();
+          if (data.status === 'success') {
+            return {
+              ...c,
+              feedbackResponse: data.data.feedbackResponse,
+              feedbackComment: data.data.feedbackComment,
+              alreadySubmitted: data.data.alreadySubmitted,
+            };
+          }
+        } catch { }
+        return c;
+      })
+    );
+    setFeedbackResults(updated);
+  }, [currentProject]);
+
+  useEffect(() => {
+    if (currentStage !== "FEEDBACK") return;
+    fetchFeedbackResults();
+    const interval = setInterval(fetchFeedbackResults, 5000);
+    return () => clearInterval(interval);
+  }, [currentStage, fetchFeedbackResults]);
 
   const fetchEmployees = async () => {
     try {
@@ -844,6 +878,9 @@ export default function Home() {
                                 const result = await res.json();
                                 if (result.status === "success") {
                                   setOutreachResults(result.data.notifications);
+                                  if (result.data.project) {
+                                    setCurrentProject(result.data.project);
+                                  }
                                 }
                               } catch (err) {
                                 console.error("Outreach failed:", err);
@@ -984,13 +1021,22 @@ export default function Home() {
                               </div>
                             </div>
 
-                            <div className="pt-4 text-center">
+                            <div className="pt-4 flex items-center justify-center gap-6">
+                              <button
+                                onClick={() => {
+                                  setCurrentStage("FEEDBACK");
+                                }}
+                                className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all"
+                              >
+                                View Feedback →
+                              </button>
                               <button
                                 onClick={() => {
                                   setCurrentStage("INGESTION");
                                   setCurrentProject(null);
                                   setMatchCandidates([]);
                                   setOutreachResults([]);
+                                  setFeedbackResults([]);
                                 }}
                                 className="text-blue-500 font-medium hover:underline"
                               >
@@ -999,6 +1045,98 @@ export default function Home() {
                             </div>
                           </>
                         )}
+                      </div>
+                    )}
+
+                    {currentStage === "FEEDBACK" && (
+                      <div className="space-y-8">
+                        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                          <h3 className="text-2xl font-bold">
+                            Team Feedback
+                          </h3>
+                          <span className="text-xs text-zinc-400 animate-pulse">● Live</span>
+                        </div>
+
+                        <p className="text-sm text-zinc-500">
+                          Awaiting responses from team members for <span className="font-semibold text-zinc-700 dark:text-zinc-300">{currentProject?.name}</span>
+                        </p>
+
+                        {/* Progress bar */}
+                        {feedbackResults.filter((c: any) => c.match >= 20).length > 0 && (
+                          <div>
+                            <div className="flex justify-between text-xs text-zinc-500 mb-2">
+                              <span>{feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length} of {feedbackResults.filter((c: any) => c.match >= 20).length} responded</span>
+                              <span>{Math.round((feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length / feedbackResults.filter((c: any) => c.match >= 20).length) * 100)}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                style={{ width: `${(feedbackResults.filter((c: any) => c.match >= 20 && c.feedbackResponse).length / feedbackResults.filter((c: any) => c.match >= 20).length) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {feedbackResults.filter((c: any) => c.match >= 20).map((candidate: any) => (
+                            <div
+                              key={candidate.id}
+                              className="p-5 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-lg">
+                                    👤
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-sm">{candidate.name}</p>
+                                    <p className="text-xs text-zinc-500">{candidate.role} · {candidate.match}% match</p>
+                                  </div>
+                                </div>
+                                <span
+                                  className={`text-xs font-bold px-3 py-1 rounded-lg ${candidate.feedbackResponse === 'accepted'
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                      : candidate.feedbackResponse === 'declined'
+                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                    }`}
+                                >
+                                  {candidate.feedbackResponse === 'accepted'
+                                    ? '✓ Accepted'
+                                    : candidate.feedbackResponse === 'declined'
+                                      ? '✗ Declined'
+                                      : '⏳ Pending'}
+                                </span>
+                              </div>
+                              {candidate.feedbackComment && (
+                                <div className="mt-3 ml-13">
+                                  <p className="text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 py-3 italic">
+                                    &ldquo;{candidate.feedbackComment}&rdquo;
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {feedbackResults.length === 0 && (
+                          <p className="text-center text-zinc-400 py-12">No team members to show.</p>
+                        )}
+
+                        <div className="pt-4 text-center">
+                          <button
+                            onClick={() => {
+                              setCurrentStage("INGESTION");
+                              setCurrentProject(null);
+                              setMatchCandidates([]);
+                              setOutreachResults([]);
+                              setFeedbackResults([]);
+                            }}
+                            className="text-blue-500 font-medium hover:underline"
+                          >
+                            Process another RFQ
+                          </button>
+                        </div>
                       </div>
                     )}
                   </motion.div>

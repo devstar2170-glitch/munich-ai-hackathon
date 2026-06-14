@@ -867,5 +867,752 @@
       "email": "georg.mueller@hackathon-munich.de",
       "role": "Project Manager"
     }
+  },
+  {
+    "id": "931511be-3db9-4314-b04f-5bbc7c4c4952",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Inventory of Existing Switchgear: Conduct a comprehensive inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Creation of Measurement Point and Drive List: Develop a detailed list of all measurement points and drives within the existing switchgear infrastructure.",
+      "REQ-003 [HIGH*] Renewal Planning for Low-Voltage Distribution Systems: Plan the renewal of the following low-voltage distribution systems (Niederspannungsverteilungen - NSV): NSV Rechen und Zulauf, NSV Vorklärung, NSV BioP, NSV Schlammbehandlung, NSV Biologie, NSV Nachklärung und Filtration.",
+      "REQ-004 [HIGH*] Renewal Planning for Sub-Distribution Boards and Control Cabinets: Plan the renewal of sub-distribution boards and control cabinets, specifically for the Sandwäscher and Sandfang, and five general building services cabinets (Haustechnikschränke).",
+      "REQ-005 [HIGH*] Renewal Planning for Automation Technology: Plan the renewal of the overall automation technology, including adaptation of the existing process control system.",
+      "REQ-006 [HIGH*] Renewal Planning for Main PLC in NSHV: Plan the renewal of the main PLC (Kopf SPS) located in the main low-voltage switchgear (NSHV).",
+      "REQ-007 [HIGH*] Partial Renewal of Cable System and Cable Routes: Plan the partial renewal of the cable system and expansion of cable routes.",
+      "REQ-008 [HIGH*] Operating Cost and Energy Consumption Analysis: During the planning phase, analyze the impact of the renewal measures on operating costs, demand, and electricity consumption.",
+      "REQ-009 [HIGH*] Compliance with TVgG NRW: The contractor must comply with the principles set forth in the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1-4 TVgG NRW) and guarantee compliance by all subcontractors. The client reserves the right to audit compliance and impose contractual penalties or extraordinary termination for violations.",
+      "REQ-010 [HIGH*] Exclusion Criteria Compliance: Bidders must not have committed severe offenses such as criminal association, terrorism, money laundering, fraud, bribery, human trafficking, tax/social security payment violations, environmental/social/labor law violations, insolvency, severe misconduct, anti-competitive agreements, conflicts of interest, distortion of competition due to prior involvement, deficient performance of previous public contracts, or deception in procurement procedures.",
+      "REQ-011 [HIGH*] Electronic Communication Requirement: All communication between the client and bidders, from announcement to award, must be exclusively electronic via the procurement platform of the Aachen economic region.",
+      "REQ-012 [HIGH*] Electronic Submission of Bids: Electronic submission of bids is required.",
+      "REQ-013 [HIGH*] German Language Requirement: The binding language for procurement documents and bid submissions is German.",
+      "REQ-014 [HIGH*] Electronic Invoicing and Payments: Electronic invoicing is required, and payments will be made electronically."
+    ],
+    "clarificationQuestion": "Failure to adhere to the strict electronic communication and submission protocols will lead to disqualification.",
+    "matchCandidates": [
+      {
+        "id": "emp_007",
+        "name": "Georg Müller",
+        "role": "Project Manager",
+        "match": 95,
+        "reason": "Georg Müller is an excellent fit due to his extensive project management experience, relevant industry background in Manufacturing and Energy, and certifications directly applicable to planning and managing complex infrastructure renewal projects.",
+        "skills": [
+          "Stakeholder Management",
+          "Agile",
+          "PRINCE2",
+          "Risk Management",
+          "Budgeting"
+        ],
+        "feedbackToken": "215c43b3-f2f2-4e04-b24b-c163cab33d8b"
+      },
+      {
+        "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+        "name": "Markus Hoffmann",
+        "role": "Senior Principal Mechanical Engineer",
+        "match": 60,
+        "reason": "Markus Hoffmann possesses relevant industry experience in Automation and Electrification, and analytical skills useful for energy consumption analysis, but his primary role is mechanical engineering and he is not available until late 2026.",
+        "skills": [
+          "Automation",
+          "Electrification",
+          "MATLAB/Simulink",
+          "Python (Data Analysis)",
+          "Six Sigma Green Belt"
+        ],
+        "feedbackToken": "ed2f7fb8-24e7-4ff4-ae88-aed4fa9f0cd8"
+      },
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 30,
+        "reason": "Bob Johnson's system design expertise and manufacturing industry experience offer some tangential relevance for process control system adaptation, though his core skills are not in industrial electrical or automation engineering.",
+        "skills": [
+          "System Design"
+        ],
+        "feedbackToken": "9bc8ca45-728e-460c-af99-2fef89d4504e"
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 10,
+        "reason": "Alice Smith's skills are primarily in frontend web development, which is not relevant to the electrical and automation planning project.",
+        "skills": [],
+        "feedbackToken": "4909ebe1-dce8-4a74-a711-02b9fb887509"
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 10,
+        "reason": "Fiona Gallagher's skills are primarily in backend software development, which is not relevant to the electrical and automation planning project.",
+        "skills": [],
+        "feedbackToken": "735deef1-11e5-4d2c-a525-23f35929f8de"
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 5,
+        "reason": "Charlie Davis's skills are primarily in full-stack web development, which is not relevant to the electrical and automation planning project.",
+        "skills": [],
+        "feedbackToken": "9b98896b-51b1-4d38-a27d-c199142afba3"
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 5,
+        "reason": "Diana Prince's skills are primarily in UI/UX design, which is not relevant to the electrical and automation planning project.",
+        "skills": [],
+        "feedbackToken": "a0ccb588-4f0e-4d1c-958a-21ec0a9e1fe4"
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 5,
+        "reason": "Ethan Hunt's skills are primarily in DevOps and cloud infrastructure, which are not relevant to the electrical and automation planning project.",
+        "skills": [],
+        "feedbackToken": "6f199f5c-3416-4575-885f-52801512f4b8"
+      },
+      {
+        "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+        "name": "",
+        "role": "",
+        "match": 0,
+        "reason": "No information is available to assess fit for the project.",
+        "skills": [],
+        "feedbackToken": "6a75225d-8de7-4af4-a349-4f01b5177cc1"
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Loaded 1 document: 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+      "> Analyzing document...",
+      "> Analysis complete. Reviewing for ambiguities...",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-14T09:39:47.813Z",
+    "updatedAt": "2026-06-14T09:40:24.536Z",
+    "humanAnswer": "Okay",
+    "selectedPM": {
+      "id": "emp_007",
+      "name": "Georg Müller",
+      "email": "georg.mueller@hackathon-munich.de",
+      "role": "Project Manager"
+    }
+  },
+  {
+    "id": "c5b63983-982d-45b6-87fb-576df9b09444",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Inventory of Existing Switchgear: Conduct a comprehensive inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Creation of Measurement Point and Drive List: Develop a detailed list of all measurement points and drives within the existing switchgear and automation systems.",
+      "REQ-003 [HIGH*] Renewal of Low-Voltage Distribution Systems (NSV): Plan the renewal of the following low-voltage distribution systems: NSV Rechen und Zulauf, NSV Vorklärung, NSV BioP, NSV Schlammbehandlung, NSV Biologie, NSV Nachklärung und Filtration.",
+      "REQ-004 [HIGH*] Renewal of Sub-Distribution Boards and Control Cabinets: Plan the renewal of sub-distribution boards and control cabinets, specifically for the Sandwäscher and Sandfang, and five general building services cabinets.",
+      "REQ-005 [HIGH*] Renewal of Automation Technology: Plan the renewal of the overall automation technology, including adaptation of the existing process control system.",
+      "REQ-006 [HIGH*] Renewal of Main PLC in NSHV: Plan the renewal of the main PLC located in the Niederspannungshauptverteilung (NSHV - Low-Voltage Main Distribution Board).",
+      "REQ-007 [HIGH*] Partial Renewal of Cable System and Cable Routes: Plan the partial renewal of the cable infrastructure and expansion of cable routes.",
+      "REQ-008 [HIGH*] Operating Cost, Demand, and Electricity Consumption Analysis: During the planning phase, analyze the impact of the renewal measures on operating costs, demand, and electricity consumption.",
+      "REQ-009 [HIGH*] Compliance with TVgG NRW: The contractor must comply with the principles set forth in the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1 to 4 TVgG NRW). This includes ensuring compliance by all subcontractors.",
+      "REQ-010 [HIGH*] Electronic Communication Requirement: All communication between the Central Procurement Office and bidders, from announcement to award, must be exclusively electronic via the procurement platform of the Aachen economic region.",
+      "REQ-011 [HIGH*] Electronic Submission of Tenders: Tenders and participation requests must be submitted electronically.",
+      "REQ-012 [HIGH*] Language of Submission: Offers or participation requests must be submitted in German.",
+      "REQ-013 [HIGH*] Electronic Invoicing and Payments: Electronic invoicing is required, and payments will be made electronically.",
+      "REQ-014 [HIGH*] Exclusion Criteria Compliance: Bidders must not be subject to any national exclusion grounds, including criminal association, terrorism financing, fraud, bribery, human trafficking, tax/social security payment defaults, environmental/social/labor law violations, insolvency, severe misconduct, anti-competitive agreements, conflicts of interest, or poor past performance.",
+      "REQ-015 [HIGH*] Personnel Qualifications Documentation: Provide relevant educational and professional qualifications of the personnel to be deployed for contract execution, using the provided template 'Tabelle 2026-03-25_Vorlage Personal'."
+    ],
+    "clarificationQuestion": "Underestimating the complexity and breadth of the electrical and automation planning required for a wastewater treatment plant, especially with multiple distribution systems and process control integration.",
+    "matchCandidates": [
+      {
+        "id": "emp_007",
+        "name": "Georg Müller",
+        "role": "Project Manager",
+        "match": 95,
+        "reason": "As a Senior Project Manager with extensive experience in manufacturing and energy, and certifications like PMP and PRINCE2, he is highly suitable for overseeing the planning and execution of this complex industrial electrical and automation system renewal project, especially given the German context and compliance requirements.",
+        "skills": [
+          "Stakeholder Management",
+          "Agile",
+          "PRINCE2",
+          "Risk Management",
+          "Budgeting",
+          "JIRA"
+        ],
+        "feedbackToken": "525f2c16-b3a6-40b3-bde3-296a71d27b20"
+      },
+      {
+        "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+        "name": "Markus Hoffmann",
+        "role": "Senior Principal Mechanical Engineer",
+        "match": 90,
+        "reason": "Despite his 'Mechanical Engineer' title, his strong background in automation and electrification, coupled with relevant skills like MATLAB/Simulink and Python, makes him highly suitable for the core technical planning of industrial electrical and automation system renewals.",
+        "skills": [
+          "MATLAB/Simulink",
+          "Python (Data Analysis)",
+          "Automation",
+          "Electrification",
+          "SolidWorks"
+        ],
+        "feedbackToken": "05fb2167-f619-4ee5-8062-c0784e6014ba",
+        "feedbackResponse": "accepted",
+        "feedbackComment": "I am concerned about ABC"
+      },
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 10,
+        "reason": "While he has experience in manufacturing and system design, his core skills in cloud architecture and software development are not directly applicable to industrial electrical and automation system renewal.",
+        "skills": [
+          "System Design"
+        ],
+        "feedbackToken": "7100a6c7-a115-4a22-a173-09f3c41e01a7"
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 5,
+        "reason": "His DevOps and cloud infrastructure skills are not directly aligned with the industrial electrical and automation system renewal, though Python might be tangentially useful for scripting or data analysis.",
+        "skills": [
+          "Python"
+        ],
+        "feedbackToken": "553e4701-09aa-41b8-933a-0e5726a13a77"
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 0,
+        "reason": "Her frontend development skills are not relevant to the electrical, automation, and industrial control system renewal project.",
+        "skills": [],
+        "feedbackToken": "71b06da8-2096-4461-8198-ad3c183de430"
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 0,
+        "reason": "His full-stack web development skills are not relevant to the electrical, automation, and industrial control system renewal project.",
+        "skills": [],
+        "feedbackToken": "5e247682-bc25-4efa-a2f0-d3dfcb10b42b"
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 0,
+        "reason": "Her UI/UX design skills are not relevant to the electrical, automation, and industrial control system renewal project.",
+        "skills": [],
+        "feedbackToken": "bf4a06f7-1b5c-4142-9b78-137aab9776d4"
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 0,
+        "reason": "Her backend software development skills are not relevant to the electrical, automation, and industrial control system renewal project.",
+        "skills": [],
+        "feedbackToken": "6ed86003-3613-4a3b-b614-c7b0f33bde56"
+      },
+      {
+        "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+        "name": " ",
+        "role": " ",
+        "match": 0,
+        "reason": "No information is provided to assess suitability for the project.",
+        "skills": [],
+        "feedbackToken": "5600f1de-8cc7-49fd-83dc-6dc90df1771d"
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Loaded 1 document: 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+      "> Analyzing document...",
+      "> Analysis complete. Reviewing for ambiguities...",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-14T09:41:50.261Z",
+    "updatedAt": "2026-06-14T09:43:46.287Z",
+    "humanAnswer": "Okay",
+    "selectedPM": {
+      "id": "emp_007",
+      "name": "Georg Müller",
+      "email": "georg.mueller@hackathon-munich.de",
+      "role": "Project Manager"
+    }
+  },
+  {
+    "id": "bdb5c2bc-62e0-4c5e-a1e3-211e8c2f70c8",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Inventory of Existing Switchgear: Conduct a comprehensive inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Creation of Measurement Point and Drive List: Develop a detailed list of all measurement points and drives within the existing switchgear infrastructure.",
+      "REQ-003 [HIGH*] Renewal of Low-Voltage Distribution Systems (NSV): Plan the renewal of the following low-voltage distribution systems: NSV Rechen und Zulauf, NSV Vorklärung, NSV BioP, NSV Schlammbehandlung, NSV Biologie, NSV Nachklärung und Filtration.",
+      "REQ-004 [HIGH*] Renewal of Sub-Distribution Boards and Control Cabinets: Plan the renewal of sub-distribution boards and control cabinets for the Sandwäscher and Sandfang, and five general building services cabinets.",
+      "REQ-005 [HIGH*] Renewal of Automation Technology: Plan the renewal of the overall automation technology, including adaptation of the existing process control system.",
+      "REQ-006 [HIGH*] Renewal of Main PLC in NSHV: Plan the renewal of the main PLC (Kopf SPS) located in the NSHV (Niederspannungshauptverteilung - Main Low-Voltage Distribution).",
+      "REQ-007 [HIGH*] Partial Renewal of Cable System and Cable Routes: Plan the partial renewal of the cable system and expansion of cable routes.",
+      "REQ-008 [HIGH*] Operating Cost Analysis during Planning Phase: During the planning phase, analyze the impact of the renewal measures on operating costs, demand, and electricity consumption.",
+      "REQ-009 [HIGH*] Compliance with TVgG NRW: The contractor must comply with the principles set forth in the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1-4 TVgG NRW). This includes ensuring compliance by all subcontractors.",
+      "REQ-010 [HIGH*] Electronic Communication Requirement: All communication between the Central Procurement Office and bidders, from announcement to award, must be exclusively electronic via the procurement platform of the Aachen economic region.",
+      "REQ-011 [HIGH*] Electronic Invoicing and Payments: Electronic invoicing is required, and orders will be placed and payments made electronically.",
+      "REQ-012 [HIGH*] Personnel Qualifications: Provide relevant educational and professional qualifications of the personnel to be deployed for contract execution.",
+      "REQ-013 [HIGH*] Exclusion Criteria Compliance: Bidders must confirm that no grounds for exclusion exist, including criminal offenses (e.g., criminal organizations, terrorism financing, fraud, bribery, human trafficking), violations of tax or social security obligations, environmental or labor law violations, insolvency, severe misconduct, anti-competitive agreements, conflicts of interest, distortion of competition due to prior involvement, or deficient performance of previous public contracts."
+    ],
+    "clarificationQuestion": "Failure to strictly adhere to the electronic communication and submission protocols will lead to disqualification.",
+    "matchCandidates": [
+      {
+        "id": "emp_007",
+        "name": "Georg Müller",
+        "role": "Project Manager",
+        "match": 90,
+        "reason": "As a Senior Project Manager with extensive experience in manufacturing and energy sectors, he possesses the crucial skills in project planning, risk management, budgeting, and stakeholder management required to lead this complex renewal project and ensure compliance.",
+        "skills": [
+          "Stakeholder Management",
+          "Agile",
+          "PRINCE2",
+          "Risk Management",
+          "Budgeting",
+          "JIRA",
+          "Manufacturing",
+          "Energy"
+        ],
+        "feedbackToken": "50a72cfe-eb4e-466c-9912-6fb804a6bf0b"
+      },
+      {
+        "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+        "name": "Markus Hoffmann",
+        "role": "Senior Principal Mechanical Engineer",
+        "match": 75,
+        "reason": "His strong background in automation and electrification, coupled with experience in robotics and industrial systems, makes him an excellent technical fit for the renewal of switchgear, distribution systems, and automation technology; however, his availability starting in September 2026 significantly limits his immediate project suitability.",
+        "skills": [
+          "Automation",
+          "Electrification",
+          "Robotics",
+          "MATLAB/Simulink",
+          "Python (Data Analysis)",
+          "PLM (Windchill)",
+          "SAP ERP",
+          "Six Sigma Green Belt"
+        ],
+        "feedbackToken": "c671d7fe-effa-453e-b7ae-92008f7f78e1",
+        "feedbackResponse": "accepted",
+        "feedbackComment": "Passt"
+      },
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 20,
+        "reason": "While he has experience in manufacturing and general system design, his technical skills are primarily in cloud architecture and software development, which do not align with the industrial electrical and automation focus of the project.",
+        "skills": [
+          "System Design",
+          "Manufacturing"
+        ],
+        "feedbackToken": "c4be91ed-33f6-45da-addd-ede25fe4f379"
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 5,
+        "reason": "His DevOps skills are geared towards software infrastructure and deployment, which are not the primary focus of this industrial electrical and automation project, and he is currently on another project.",
+        "skills": [
+          "Python"
+        ],
+        "feedbackToken": "db24031c-5c24-411d-9814-873d3f4ae77d"
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 0,
+        "reason": "Her skills are entirely focused on web frontend development, which is not required for this industrial automation and electrical systems project.",
+        "skills": [],
+        "feedbackToken": "3cacc6d4-03ed-4b32-85f0-e568cf7bb6c0"
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 0,
+        "reason": "His full-stack development skills are not applicable to the industrial electrical and automation requirements of this project, and he is currently on another project.",
+        "skills": [],
+        "feedbackToken": "76cd26d5-f69d-482c-ab3c-7b9e8edaeed6"
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 0,
+        "reason": "Her expertise in UI/UX design is not required for the planning and renewal of industrial electrical and automation systems.",
+        "skills": [],
+        "feedbackToken": "19ea19b3-86e0-4c9f-b7d0-9808404c5509"
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 0,
+        "reason": "Her backend development skills are not applicable to the industrial electrical and automation requirements of this project.",
+        "skills": [],
+        "feedbackToken": "65d35dc5-7f02-4e4b-9185-5dbc93861a96"
+      },
+      {
+        "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+        "name": "",
+        "role": "",
+        "match": 0,
+        "reason": "The employee profile is incomplete, lacking essential information such as role, skills, and experience, making it impossible to assess their fit for the project.",
+        "skills": [],
+        "feedbackToken": "5ca16883-fced-44d6-b82b-b4d9bc811bae"
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Loaded 1 document: 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+      "> Analyzing document...",
+      "> Analysis complete. Reviewing for ambiguities...",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-14T09:52:14.784Z",
+    "updatedAt": "2026-06-14T09:53:25.901Z",
+    "humanAnswer": "Okay",
+    "selectedPM": {
+      "id": "emp_007",
+      "name": "Georg Müller",
+      "email": "georg.mueller@hackathon-munich.de",
+      "role": "Project Manager"
+    }
+  },
+  {
+    "id": "f735c9dd-283c-4ebf-9628-50607ccd6591",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Inventory of Existing Switchgear: Conduct a comprehensive inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Creation of Measurement Point and Drive List: Develop a detailed list of all measurement points and drives within the existing switchgear infrastructure.",
+      "REQ-003 [HIGH*] Renewal of Low-Voltage Distribution Systems (NSV): Plan the renewal of the following low-voltage distribution systems: NSV Rechen und Zulauf, NSV Vorklärung, NSV BioP, NSV Schlammbehandlung, NSV Biologie, NSV Nachklärung und Filtration.",
+      "REQ-004 [HIGH*] Renewal of Sub-Distribution Boards and Control Cabinets: Plan the renewal of sub-distribution boards and control cabinets for the Sandwäscher and Sandfang, and five general building services cabinets.",
+      "REQ-005 [HIGH*] Renewal of Automation Technology: Plan the renewal of the overall automation technology for the plant.",
+      "REQ-006 [HIGH*] Adaptation of Process Control System: Plan the necessary adaptations to the existing process control system to integrate the new automation technology.",
+      "REQ-007 [HIGH*] Renewal of Main PLC in NSHV: Plan the renewal of the main PLC (Kopf SPS) located in the main low-voltage switchgear (NSHV).",
+      "REQ-008 [HIGH*] Partial Renewal of Cable System and Cable Routes: Plan the partial renewal of the cable system and the expansion of cable routes.",
+      "REQ-009 [HIGH*] Operating Cost Analysis: During the planning phase, analyze the contribution development through the renewal measures, specifically focusing on operating cost determination, demand assessment, and electricity consumption.",
+      "REQ-010 [HIGH*] Compliance with TVgG NRW: The contractor must comply with the principles set out in the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1-4 TVgG NRW) and guarantee compliance by all subcontractors. The client reserves the right to control, audit, and terminate the contract with penalties for non-compliance.",
+      "REQ-011 [HIGH*] Exclusion Criteria Compliance: Bidders must not have any grounds for exclusion as listed, including criminal offenses (e.g., criminal organizations, terrorism, money laundering, fraud, bribery, human trafficking), violations of tax or social security obligations, environmental or labor law violations, insolvency, severe misconduct, anti-competitive agreements, conflicts of interest, distortion of competition due to prior involvement, or deficient performance of previous public contracts.",
+      "REQ-012 [HIGH*] Professional Liability Insurance: Maintain a valid professional liability insurance with a minimum coverage of 3.0 million EUR per claim, covering at least two claims per year, for personal injury, property damage, and financial losses throughout the contract duration. Proof of insurance must be provided upon request and must cover activities performed by subcontractors.",
+      "REQ-013 [HIGH*] Tax and Social Security Contribution Proof: Provide proof that taxes, duties, and social security contributions have been paid. This proof should not be older than one year.",
+      "REQ-014 [HIGH*] No Severe Misconduct or Supply Chain Act Violations: Declare that no severe misconduct according to §§ 123, 124 GWB has been committed that questions the reliability of the applicant, and that no grounds for exclusion according to § 22 LkSG (Lieferkettensorgfaltspflichtengesetz) exist.",
+      "REQ-015 [HIGH*] Electronic Communication and Submission: All communication, inquiries, and submissions (including applications and offers) must be exclusively electronic via the procurement platform of the Wirtschaftsregion Aachen.",
+      "REQ-016 [HIGH*] Electronic Invoicing and Payments: Electronic invoicing is required, and payments will be made electronically."
+    ],
+    "clarificationQuestion": "Failure to strictly adhere to the electronic communication and submission protocols via the specified platform.",
+    "matchCandidates": [
+      {
+        "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+        "name": "Markus Hoffmann",
+        "role": "Senior Principal Mechanical Engineer",
+        "match": 95,
+        "reason": "Markus's industry experience in Automation and Electrification, combined with skills like MATLAB/Simulink for system analysis and Python for data analysis, makes him an excellent technical fit for the industrial automation and electrical infrastructure renewal project.",
+        "skills": [
+          "SIMULIA (Abaqus)",
+          "MATLAB/Simulink",
+          "Python (Data Analysis)",
+          "Six Sigma Green Belt"
+        ],
+        "feedbackToken": "c990194f-c293-4929-98a7-6ea37350e3ba",
+        "feedbackResponse": "accepted",
+        "feedbackComment": "Top!"
+      },
+      {
+        "id": "emp_007",
+        "name": "Georg Müller",
+        "role": "Project Manager",
+        "match": 90,
+        "reason": "Georg's extensive project management experience, PMP and PRINCE2 certifications, and relevant industry background in Manufacturing and Energy are crucial for successfully overseeing this complex industrial project.",
+        "skills": [
+          "Stakeholder Management",
+          "Agile",
+          "PRINCE2",
+          "Risk Management",
+          "Budgeting",
+          "JIRA"
+        ],
+        "feedbackToken": "3f38ae86-230a-41c4-9832-89352732dd3a"
+      },
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 65,
+        "reason": "Bob's system design expertise and manufacturing industry experience could be valuable for architecting the new automation and process control systems, especially if modern IT infrastructure or cloud components are involved.",
+        "skills": [
+          "System Design",
+          "AWS",
+          "Docker",
+          "Kubernetes"
+        ],
+        "feedbackToken": "9ffc34db-652b-4d93-b99a-7bf83e31827f"
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 55,
+        "reason": "Ethan's DevOps skills, including Azure, CI/CD, and Python, could support the deployment and operational aspects of the new automation technology and process control system if it incorporates modern software infrastructure.",
+        "skills": [
+          "Terraform",
+          "CI/CD",
+          "Azure",
+          "Python",
+          "Monitoring"
+        ],
+        "feedbackToken": "8533df26-6755-45ec-89bc-4a7b952734a8"
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 15,
+        "reason": "While primarily a frontend developer, Alice's AWS Certified Developer certification offers a minimal, indirect relevance if the process control system includes cloud-based components.",
+        "skills": [
+          "AWS Certified Developer"
+        ],
+        "feedbackToken": "9f3a085c-ce92-4321-aa95-3eee879faec9"
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 10,
+        "reason": "Charlie's full stack development skills are not a direct fit for the project, but his PostgreSQL knowledge could be minimally useful for any database components within the process control system.",
+        "skills": [
+          "PostgreSQL"
+        ],
+        "feedbackToken": "8c98f264-6fed-4e07-ae87-6fc7413ef77a"
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 10,
+        "reason": "Fiona's backend development skills are not a direct fit for the project, but her SQL knowledge could be minimally useful for any data handling within the process control system.",
+        "skills": [
+          "SQL"
+        ],
+        "feedbackToken": "32c56b90-ff0c-49e5-8089-b3a34432acda"
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 5,
+        "reason": "Diana's UI/UX design skills are not relevant to the core technical or management requirements of this industrial infrastructure renewal project.",
+        "skills": [],
+        "feedbackToken": "3b4a6f12-fbc0-4207-afcc-615fb17e49b7"
+      },
+      {
+        "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+        "name": "",
+        "role": "",
+        "match": 0,
+        "reason": "No information is available for this employee to assess their fit for the project.",
+        "skills": [],
+        "feedbackToken": "f5c90e4e-6512-4959-b6f9-01785335372f"
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Loaded 1 document: 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+      "> Analyzing document...",
+      "> Analysis complete. Reviewing for ambiguities...",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-14T09:56:22.331Z",
+    "updatedAt": "2026-06-14T09:59:24.564Z",
+    "humanAnswer": "Okay",
+    "selectedPM": {
+      "id": "emp_007",
+      "name": "Georg Müller",
+      "email": "georg.mueller@hackathon-munich.de",
+      "role": "Project Manager"
+    }
+  },
+  {
+    "id": "528cb114-6da6-4126-b51a-3a40c9ffa4c5",
+    "name": "9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+    "status": "PLANNING",
+    "rfqContent": "[Binary Document]",
+    "requirements": [
+      "REQ-001 [HIGH*] Inventory of Existing Switchgear: Conduct a comprehensive inventory of all existing switchgear at the Jülich wastewater treatment plant.",
+      "REQ-002 [HIGH*] Creation of Measurement Point and Drive List: Develop a detailed list of all measurement points and drives within the existing switchgear infrastructure.",
+      "REQ-003 [HIGH*] Renewal of Low-Voltage Distribution Systems: Plan the renewal of the following low-voltage distribution systems: NSV Rechen und Zulauf, NSV Vorklärung, NSV BioP, NSV Schlammbehandlung, NSV Biologie, NSV Nachklärung und Filtration.",
+      "REQ-004 [HIGH*] Renewal of Sub-Distribution Boards and Control Cabinets: Plan the renewal of sub-distribution boards and control cabinets for the Sandwäscher and Sandfang, and five general building services cabinets.",
+      "REQ-005 [HIGH*] Renewal of Automation Technology: Plan the renewal of the overall automation technology, including adaptation of the existing process control system.",
+      "REQ-006 [HIGH*] Renewal of Main PLC in NSHV: Plan the renewal of the main PLC located in the NSHV (Niederspannungshauptverteilung - Main Low-Voltage Distribution).",
+      "REQ-007 [HIGH*] Partial Renewal of Cable System and Cable Routes: Plan the partial renewal of the cable system and the expansion of cable routes.",
+      "REQ-008 [HIGH*] Operating Cost, Demand, and Power Consumption Analysis: During the planning phase, analyze the impact of the renewal measures on operating costs, demand, and power consumption.",
+      "REQ-009 [HIGH*] Compliance with TVgG NRW: The contractor must comply with the principles set forth in the Tariftreue- und Vergabegesetz NRW (§ 2 Abs. 1 to 4 TVgG NRW) and guarantee compliance by all subcontractors. The client reserves the right to control, audit, and impose contractual penalties or extraordinary termination for non-compliance.",
+      "REQ-010 [HIGH*] Exclusion Criteria Compliance: Bidders must not have any grounds for exclusion as per national regulations, including criminal offenses (e.g., criminal organizations, terrorism, money laundering, fraud, bribery, human trafficking), violations of tax or social security obligations, environmental or labor law violations, insolvency, severe misconduct, anti-competitive agreements, conflicts of interest, distortion of competition due to prior involvement, or deficient performance of previous public contracts.",
+      "REQ-011 [LOW] Personnel Qualifications Disclosure: The names and professional qualifications of the personnel assigned to the contract execution are not required to be submitted with the application.",
+      "REQ-012 [HIGH*] Electronic Communication Requirement: All communication between the Central Procurement Office and applicants/bidders, from announcement to award, must be exclusively electronic via the procurement platform of the Aachen economic region.",
+      "REQ-013 [HIGH*] Electronic Submission of Tenders: Electronic submission of tenders is required.",
+      "REQ-014 [HIGH*] Language for Submissions: Offers or participation requests must be submitted in German.",
+      "REQ-015 [HIGH*] Electronic Invoicing and Payments: Electronic invoicing is required, and payments will be made electronically."
+    ],
+    "clarificationQuestion": "Failure to strictly adhere to the electronic communication and submission protocols of the Wirtschaftsregion Aachen platform.",
+    "matchCandidates": [
+      {
+        "id": "emp_007",
+        "name": "Georg Müller",
+        "role": "Project Manager",
+        "match": 95,
+        "reason": "As an experienced Project Manager with relevant certifications (PMP, PRINCE2) and strong past industry experience in manufacturing and energy, he is an excellent fit to lead and manage the complex industrial automation and electrical renewal project, and is available.",
+        "skills": [
+          "Stakeholder Management",
+          "Agile",
+          "PRINCE2",
+          "Risk Management",
+          "Budgeting",
+          "JIRA"
+        ],
+        "feedbackToken": "a4e6e22a-6609-4e4a-9827-ad7cf22383e1"
+      },
+      {
+        "id": "emp_002",
+        "name": "Bob Johnson",
+        "role": "Solutions Architect",
+        "match": 60,
+        "reason": "His 'System Design' skills and past experience in 'Manufacturing' are relevant for architecting the automation technology renewal, especially the process control system adaptation, although his specific cloud and backend skills are not directly central to the core electrical infrastructure.",
+        "skills": [
+          "System Design",
+          "AWS",
+          "Node.js",
+          "Docker",
+          "Kubernetes"
+        ],
+        "feedbackToken": "91c51bb4-ac22-424f-8dd8-cdbd70bc9f4d",
+        "feedbackResponse": "accepted",
+        "feedbackComment": "Lass machen",
+        "feedbackFileUploaded": "91c51bb4-ac22-424f-8dd8-cdbd70bc9f4d-1781431641323.pptx"
+      },
+      {
+        "id": "53dcb186-f1be-4d1f-8cca-e28a735dcd23",
+        "name": "Markus Hoffmann",
+        "role": "Senior Principal Mechanical Engineer",
+        "match": 25,
+        "reason": "Possesses highly relevant experience in 'Automation' and 'Electrification' at a senior principal level, making him technically an excellent fit for the project's core requirements; however, his unavailability until September 2026 significantly reduces his immediate practical fit for a typical RFP project.",
+        "skills": [
+          "Automation",
+          "Electrification",
+          "MATLAB/Simulink",
+          "Python (Data Analysis)",
+          "Six Sigma Green Belt"
+        ],
+        "feedbackToken": "ac65495a-b471-4d3e-b968-06f2d853938d",
+        "feedbackResponse": "declined",
+        "feedbackComment": "Keine Zeit man"
+      },
+      {
+        "id": "emp_005",
+        "name": "Ethan Hunt",
+        "role": "DevOps Engineer",
+        "match": 15,
+        "reason": "While his DevOps skills are not directly aligned with the core electrical and automation hardware, 'Monitoring' and 'CI/CD' could be tangentially useful for modernizing the process control system, but he is currently on another project.",
+        "skills": [
+          "Terraform",
+          "CI/CD",
+          "Azure",
+          "Python",
+          "Monitoring"
+        ],
+        "feedbackToken": "3bff3b44-e8a2-4df1-b237-d3cd8909f3e4"
+      },
+      {
+        "id": "emp_001",
+        "name": "Alice Smith",
+        "role": "Senior Frontend Developer",
+        "match": 5,
+        "reason": "Her expertise in frontend development (React, Next.js) is not relevant to the planning and renewal of industrial electrical and automation systems.",
+        "skills": [],
+        "feedbackToken": "96343936-1d98-40d6-8807-2b94e54807ae"
+      },
+      {
+        "id": "emp_003",
+        "name": "Charlie Davis",
+        "role": "Full Stack Engineer",
+        "match": 5,
+        "reason": "His full-stack development skills are not aligned with the requirements for planning and renewing industrial electrical and automation systems, and he is currently on another project.",
+        "skills": [],
+        "feedbackToken": "5ad691e6-8f42-4a58-a7cb-85b5aef841a8"
+      },
+      {
+        "id": "emp_004",
+        "name": "Diana Prince",
+        "role": "UI/UX Designer",
+        "match": 5,
+        "reason": "Her expertise in UI/UX design is not relevant to the technical planning and implementation of industrial electrical and automation systems.",
+        "skills": [],
+        "feedbackToken": "6f8f56ea-5343-4c72-8347-f0a29147c5c1"
+      },
+      {
+        "id": "emp_006",
+        "name": "Fiona Gallagher",
+        "role": "Backend Specialist",
+        "match": 5,
+        "reason": "Her backend development skills are not relevant to the planning and renewal of industrial electrical and automation systems.",
+        "skills": [],
+        "feedbackToken": "490b60fe-3ace-4e39-984f-70675f73b546"
+      },
+      {
+        "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+        "name": "",
+        "role": "",
+        "match": 0,
+        "reason": "The profile is incomplete and lacks any information to assess fit for the project.",
+        "skills": [],
+        "feedbackToken": "a2573024-ecb0-44eb-9e55-92fc2a932c74"
+      }
+    ],
+    "thoughtLog": [
+      "> Ingestion complete.",
+      "> Loaded 1 document: 9d2f2062-accd-49b8-bcf5-c57caab2f612.pdf",
+      "> Analyzing document...",
+      "> Analysis complete. Reviewing for ambiguities...",
+      "> Human input received.",
+      "> Re-evaluating skills matrix with clarification...",
+      "> Running AI-powered matchmaking...",
+      "> Found optimal team configurations."
+    ],
+    "createdAt": "2026-06-14T10:03:48.131Z",
+    "updatedAt": "2026-06-14T10:07:21.340Z",
+    "humanAnswer": "Okay",
+    "selectedPM": {
+      "id": "emp_007",
+      "name": "Georg Müller",
+      "email": "georg.mueller@hackathon-munich.de",
+      "role": "Project Manager"
+    }
   }
 ]

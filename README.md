@@ -1,27 +1,132 @@
 # Sales Engineering Agentic System
 
-## Quick Start
+An AI-powered multi-agent pipeline that automates the sales engineering workflow: ingest RFP/RFQ documents, extract structured intelligence using Google Gemini, match the best-fit employees from your talent pool, and send outreach notifications — all orchestrated through a modern web interface.
 
-**Prerequisites:** Python 3.10+, Node.js 18+, a Gemini API key ([get one here](https://aistudio.google.com/apikey))
+---
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Prerequisites & Setup](#prerequisites--setup)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+- [API Documentation](#api-documentation)
+- [Core Modules](#core-modules)
+- [Data Models](#data-models)
+- [CLI Usage](#cli-usage)
+- [Project Structure](#project-structure)
+- [Dependencies Reference](#dependencies-reference)
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Frontend ["Next.js Frontend (:3000)"]
+        UI[Web UI - React 19]
+        API_ROUTES[Next.js API Routes]
+        STORAGE[Local JSON Storage]
+    end
+
+    subgraph Backend ["FastAPI Backend (:8000)"]
+        ANALYZE["/api/analyze"]
+        ANALYZE_MULTI["/api/analyze-multi"]
+        MATCH["/api/match"]
+        EXTRACT_CV["/api/extract-cv"]
+    end
+
+    subgraph AI ["Google Gemini 2.5 Flash"]
+        RFP_AGENT[RFP Analysis Agent]
+        MATCHMAKER[Matchmaking Agent]
+        CV_PARSER[CV Extraction]
+    end
+
+    subgraph External ["External Services"]
+        NTFY[ntfy.sh Notifications]
+        GDRIVE[Google Drive]
+        GSHEETS[Google Sheets CRM]
+    end
+
+    UI -->|Upload RFP/RFQ| API_ROUTES
+    API_ROUTES -->|Forward files| ANALYZE_MULTI
+    API_ROUTES -->|Employee matching| MATCH
+    API_ROUTES -->|CV upload| EXTRACT_CV
+    API_ROUTES -->|Send notifications| NTFY
+    API_ROUTES <-->|Read/Write| STORAGE
+
+    ANALYZE --> RFP_AGENT
+    ANALYZE_MULTI --> RFP_AGENT
+    MATCH --> MATCHMAKER
+    EXTRACT_CV --> CV_PARSER
+
+    GDRIVE -->|CV ingestion| CV_PARSER
+    CV_PARSER -->|Structured data| GSHEETS
+```
+
+### Pipeline Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> INGESTION: Upload RFP/RFQ documents
+    INGESTION --> ANALYSIS: Gemini extracts requirements, skills, risks
+    ANALYSIS --> PLANNING: Human clarification + employee matching
+    PLANNING --> OUTREACH: PM selected, team assembled
+    OUTREACH --> [*]: Notifications sent via ntfy.sh
+```
+
+1. **Ingestion** — User uploads one or more RFP/RFQ documents (PDF, DOCX, TXT)
+2. **Analysis** — Gemini 2.5 Flash extracts structured intelligence: requirements, skills matrix, deadlines, risks, compliance norms
+3. **Planning** — System matches employees against extracted requirements, human provides clarification if needed, PM is auto-selected
+4. **Outreach** — Notifications are sent to the PM and matched team members via ntfy.sh
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | Next.js 16, React 19, TypeScript | App Router-based web interface |
+| **Styling** | Tailwind CSS v4, Framer Motion | Responsive design and animations |
+| **Backend API** | FastAPI, Uvicorn | Python AI/ML service layer |
+| **Backend Orchestration** | Next.js API Routes | Request orchestration, state management |
+| **AI/ML** | Google Gemini 2.5 Flash | Structured extraction, matchmaking, CV parsing |
+| **Document Parsing** | pdfplumber, python-docx, Gemini Files API | PDF/DOCX/TXT text extraction (with multimodal fallback) |
+| **Data Storage** | Local JSON files | Employee and project persistence |
+| **Notifications** | ntfy.sh | Push notifications to team members |
+| **Onboarding** | Google Drive API, Google Sheets API | CV ingestion pipeline to CRM |
+| **Validation** | Pydantic v2 | Structured output validation and schemas |
+
+---
+
+## Prerequisites & Setup
+
+### Requirements
+
+- **Python** 3.10+
+- **Node.js** 18+
+- **Gemini API Key** — [get one here](https://aistudio.google.com/apikey)
 
 ### 1. Clone & configure
 
 ```bash
 git clone <repo-url>
-cd munich-hackathon
+cd web
 
 # Create your .env file
 cp .env.example .env
-# Open .env and set:  GEMINI_API_KEY=your_key_here
+# Set your Gemini API key:
+#   GEMINI_API_KEY=your_key_here
 ```
 
 ### 2. Install dependencies
 
 ```bash
-# Python (RFP agent + API server)
+# Python dependencies (FastAPI + RFP agent + AI libraries)
 pip3 install -r requirements.txt
 
-# Node.js (Next.js frontend)
+# Node.js dependencies (Next.js frontend)
 npm install
 ```
 
@@ -29,11 +134,7 @@ npm install
 
 **Terminal 1 — Python API server (port 8000):**
 ```bash
-# macOS / Linux
 python3 -m uvicorn server:app --port 8000
-
-# Windows
-uvicorn server:app --port 8000
 ```
 
 **Terminal 2 — Next.js frontend (port 3000):**
@@ -41,210 +142,144 @@ uvicorn server:app --port 8000
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-> Both servers must be running at the same time. The frontend sends RFP files to the Python server for analysis.
+> **Note:** Both servers must be running simultaneously. The frontend proxies AI requests to the Python backend.
 
-**macOS troubleshooting:**
-- Use `python3` and `pip3` instead of `python` / `pip` — macOS ships with Python 2 by default
-- If `uvicorn` command is not found, always use `python3 -m uvicorn server:app --port 8000`
-- If you get a permissions error on port 8000, try `--port 8001` and set `NEXT_PUBLIC_AGENT_API_URL=http://localhost:8001` in your `.env`
+### macOS Troubleshooting
 
----
-
-## CLI Usage
-
-You can also run the agent directly from the terminal, without the web UI — useful for batch processing or testing.
-
-```bash
-# Single document
-python3 main.py rfp.pdf
-
-# Multiple documents at once
-python3 main.py rfp1.pdf rfp2.docx rfp3.pdf
-
-# Save results to files (one JSON per document)
-python3 main.py rfp1.pdf rfp2.pdf --output-dir results/ --planning-dir planning/
-# Produces:
-#   results/rfp1.json        — full analysis
-#   results/rfp2.json
-#   planning/rfp1_planning.json  — slim payload for Planning Agent
-#   planning/rfp2_planning.json
-```
-
-Output includes: summary, requirements table, skills matrix, deadlines, dependencies, risks, compliance norms, and pitfalls — all in a clean terminal format.
+- Use `python3` / `pip3` — macOS ships with Python 2 by default
+- If `uvicorn` not found: `python3 -m uvicorn server:app --port 8000`
+- Port conflict: try `--port 8001` and set `NEXT_PUBLIC_AGENT_API_URL=http://localhost:8001` in `.env`
 
 ---
 
-## System Overview
+## Environment Variables
 
-This repository contains the **RFP Analysis Agent** — the first step in a multi-agent sales engineering pipeline. It reads an RFP/tender document (PDF, DOCX, TXT) and produces structured intelligence for downstream agents.
-
-```
-  ┌──────────────────────┐
-  │  RFP Document        │   PDF / DOCX / TXT, any language
-  └──────────┬───────────┘
-             │
-  ┌──────────▼───────────┐
-  │  RFP Analysis Agent  │   Gemini 2.5 Flash — this repo
-  │  (server.py :8000)   │
-  └──┬───────────────┬───┘
-     │               │
-     ▼               ▼
-Planning Agent   Response Agent
-(skills match)   (proposal draft)
-```
-
-The RFP Analysis Agent exposes a **FastAPI server on port 8000**. The Next.js frontend (port 3000) talks to it, and so can any other agent in the system.
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GEMINI_API_KEY` | **Yes** | — | Google Gemini API key for all AI operations |
+| `NEXT_PUBLIC_AGENT_API_URL` | No | `http://localhost:8000` | URL of the Python FastAPI server |
+| `CRM_SPREADSHEET_ID` | For onboarding | — | Google Sheets spreadsheet ID for CRM |
+| `DROPZONE_FOLDER_NAME` | For onboarding | `01_CV_Dropzone` | Google Drive folder name for incoming CVs |
+| `PROCESSED_FOLDER_NAME` | For onboarding | `02_Processed_CVs` | Google Drive folder for processed CVs |
+| `SKILLS_DB_SHEET_NAME` | For onboarding | `Skills_DB` | Sheet tab name in the CRM spreadsheet |
+| `GEMINI_MODEL` | No | `gemini-1.5-flash` | Model override for onboarding agent |
 
 ---
 
-## For the Planning Agent Developer
+## Running the Application
 
-This section is for you. Everything below tells you what you get from the RFP Analysis Agent and how to call it.
+### Web Interface (recommended)
 
-### What you receive
+1. Start both servers (see Setup above)
+2. Navigate to `http://localhost:3000`
+3. Upload an RFP/RFQ document
+4. Review extracted requirements, skills, and risks
+5. Provide clarification when prompted
+6. View matched employees and selected PM
+7. Trigger outreach notifications
 
-When the RFP Analysis Agent finishes, it produces a `planning_payload` — a slim, skills-focused object optimized for employee matching. This is the **primary handoff** to your agent.
+### Demo Walkthrough
 
-#### `planning_payload` structure
-
-```json
-{
-  "rfp_title": "Modernization of Substation Control System",
-  "client_name": "Regional Grid Operator",
-  "submission_deadline": "2025-06-30",
-  "project_duration": "18 months",
-  "estimated_team_size": "6-8 engineers",
-
-  "skills_required": [
-    {
-      "skill": "Siemens TIA Portal v17 PLC programming",
-      "category": "technical",
-      "proficiency_level": "senior",
-      "quantity_needed": 2,
-      "context": "Required for automation of the control system per REQ-004 and REQ-007",
-      "related_requirement_ids": ["REQ-004", "REQ-007"]
-    },
-    {
-      "skill": "IEC 61850 substation communication",
-      "category": "technical",
-      "proficiency_level": "expert",
-      "quantity_needed": 1,
-      "context": "Protocol standard for inter-device communication — explicit compliance requirement",
-      "related_requirement_ids": ["REQ-002"]
-    }
-  ],
-
-  "high_priority_requirements": [
-    {
-      "id": "REQ-001",
-      "category": "technical",
-      "title": "SCADA integration",
-      "description": "Full integration with existing SCADA system...",
-      "priority": "high",
-      "is_mandatory": true,
-      "skills_needed": ["SCADA", "OPC-UA", "IEC 61850"],
-      "section_reference": "Section 3.2"
-    }
-  ],
-
-  "dependencies": [
-    {
-      "type": "internal",
-      "name": "ISO 9001 certification",
-      "category": "certification_body",
-      "description": "Bidder must hold active ISO 9001 certification",
-      "criticality": "high",
-      "notes": null
-    }
-  ],
-
-  "compliance_norms": [
-    {
-      "name": "IEC 61850",
-      "description": "Communication standard for substation automation",
-      "mandatory": true,
-      "certification_required": false
-    }
-  ]
-}
-```
-
-#### `skill_required` field reference
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `skill` | string | Exact skill name — granular, not generic (e.g. "OCPP 2.0.1" not "EV charging") |
-| `category` | string | `technical` \| `domain` \| `certification` \| `soft_skill` \| `language` |
-| `proficiency_level` | string | `junior` \| `mid` \| `senior` \| `expert` |
-| `quantity_needed` | int | How many people with this skill the project needs |
-| `context` | string | Why this skill is needed and how it will be used on this project |
-| `related_requirement_ids` | string[] | Which requirements drive this skill need |
+1. **Upload** — Drag and drop any RFP PDF into the upload zone
+2. **Analysis** — The system displays extracted requirements, skills matrix, deadlines, and risks within seconds
+3. **Matchmaking** — Answer the clarification question, then view ranked employee matches with fit scores
+4. **Outreach** — Click to notify the selected PM and team via push notifications
 
 ---
 
-### How to get the planning payload
+## API Documentation
 
-#### Option 1 — Read it from the frontend API response
+### Python FastAPI Endpoints (port 8000)
 
-When the Next.js frontend calls `POST /api/analyze`, the response includes `planning_payload` as a top-level field alongside all other data. Your agent can subscribe to or read from this response.
+#### `POST /api/analyze`
 
-#### Option 2 — Call the analysis endpoint directly
+Analyze a single uploaded RFP document.
 
-```bash
-curl -X POST http://localhost:8000/api/analyze \
-  -F "file=@path/to/rfp.pdf"
-```
+| Field | Value |
+|-------|-------|
+| Content-Type | `multipart/form-data` |
+| Body | `file` — PDF, DOCX, or TXT |
 
-Response shape:
-
+**Response:**
 ```json
 {
   "requirements": ["REQ-001 [HIGH*] SCADA integration: ..."],
   "ambiguity": "Scope boundary between Phase 1 and Phase 2 is unclear...",
   "suggestedSkills": ["Siemens TIA Portal — senior × 2"],
-
   "rfp_title": "...",
   "client_name": "...",
   "rfp_summary": "...",
   "submission_deadline": "2025-06-30",
   "project_duration": "18 months",
-  "budget_constraints": null,
   "confidence_score": 0.87,
-
   "deadlines": [...],
   "risks": [...],
   "dependencies": [...],
   "compliance_norms": [...],
   "key_evaluation_criteria": [...],
   "pitfalls": [...],
-
-  "planning_payload": { ... }    ← this is yours
+  "planning_payload": { ... }
 }
-```
-
-#### Option 3 — Python (direct import)
-
-```python
-from rfp_agent import RFPAnalysisAgent
-
-agent = RFPAnalysisAgent()  # reads GEMINI_API_KEY from env
-analysis = agent.analyze_file("rfp.pdf")
-payload = agent.to_planning_agent_payload(analysis)
-# payload is a plain dict — serialize or pass directly
 ```
 
 ---
 
-### Employee matchmaking endpoint
+#### `POST /api/analyze-multi`
 
-There is also a matchmaking endpoint you can use or build on:
+Analyze multiple uploaded files as one combined RFP.
 
-```bash
-POST http://localhost:8000/api/match
-Content-Type: application/json
+| Field | Value |
+|-------|-------|
+| Content-Type | `multipart/form-data` |
+| Body | `files` — multiple PDF/DOCX/TXT files |
 
+**Response:** Same schema as `/api/analyze`.
+
+---
+
+#### `POST /api/extract-cv`
+
+Extract structured employee profile from a CV PDF.
+
+| Field | Value |
+|-------|-------|
+| Content-Type | `multipart/form-data` |
+| Body | `file` — PDF CV |
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": {
+    "firstName": "Anna",
+    "lastName": "Schmidt",
+    "email": "anna@example.com",
+    "location": "Munich",
+    "role": "Automation Engineer",
+    "level": "senior",
+    "yearsOfExperience": 8,
+    "pastIndustryExperience": ["Energy", "Manufacturing"],
+    "skills": ["Siemens TIA Portal", "SCADA", "IEC 61850"],
+    "certifications": ["ISO 9001 Auditor"],
+    "linkedin": "https://linkedin.com/in/anna-schmidt"
+  }
+}
+```
+
+---
+
+#### `POST /api/match`
+
+Match employees against project requirements using Gemini.
+
+| Field | Value |
+|-------|-------|
+| Content-Type | `application/json` |
+
+**Request:**
+```json
 {
   "requirements": ["REQ-001 [HIGH*] SCADA integration: ..."],
   "employees": [
@@ -255,12 +290,11 @@ Content-Type: application/json
       "skills": ["Siemens TIA Portal", "SCADA", "IEC 61850"]
     }
   ],
-  "human_answer": "optional — clarification from the human if needed"
+  "human_answer": "optional clarification string"
 }
 ```
 
-Response:
-
+**Response:**
 ```json
 {
   "matches": [
@@ -269,7 +303,7 @@ Response:
       "name": "Anna Schmidt",
       "role": "Automation Engineer",
       "match": 92,
-      "reason": "Direct match on all three core technical skills required by the RFP.",
+      "reason": "Direct match on all three core technical skills.",
       "skills": ["Siemens TIA Portal", "SCADA", "IEC 61850"]
     }
   ]
@@ -278,9 +312,201 @@ Response:
 
 ---
 
-## Full data model reference
+#### `GET /health`
 
-All fields available on a complete `RFPAnalysis`:
+Health check endpoint. Returns `{ "status": "ok" }`.
+
+---
+
+### Next.js API Routes (port 3000)
+
+#### `POST /api/process-rfq`
+
+Orchestrates RFP ingestion: accepts files, calls Python `/api/analyze-multi`, creates project state.
+
+| Field | Value |
+|-------|-------|
+| Content-Type | `multipart/form-data` |
+| Body | `files` — one or more RFP documents |
+
+**Response:**
+```json
+{
+  "status": "success",
+  "project": {
+    "id": "uuid",
+    "stage": "ANALYSIS",
+    "requirements": [...],
+    "clarificationQuestion": "...",
+    "thoughtLog": [...],
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+---
+
+#### `POST /api/matchmaking`
+
+Adds human clarification, triggers employee matching, auto-selects PM.
+
+**Request:**
+```json
+{
+  "projectId": "uuid",
+  "humanAnswer": "We need someone with IEC 61850 experience"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "project": {
+    "matchCandidates": [...],
+    "selectedPM": { ... },
+    "thoughtLog": [...],
+    "status": "PLANNING"
+  }
+}
+```
+
+---
+
+#### `POST /api/outreach`
+
+Sends push notifications to selected PM and team members via ntfy.sh.
+
+**Request:**
+```json
+{
+  "projectId": "uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "notifications": [...],
+  "pm": { ... }
+}
+```
+
+---
+
+#### `GET /api/employees`
+
+Returns the full employee list from local storage.
+
+**Response:**
+```json
+{
+  "status": "success",
+  "employees": [...]
+}
+```
+
+---
+
+#### `POST /api/employees/[id]`
+
+Create or update an employee profile by ID.
+
+**Request:** JSON employee object with fields matching the CandidateProfile schema.
+
+---
+
+#### `POST /api/employees/extract`
+
+Upload a CV PDF, extract structured profile via Gemini, store the file, detect duplicates.
+
+| Field | Value |
+|-------|-------|
+| Content-Type | `multipart/form-data` |
+| Body | `file` — PDF CV |
+
+**Response:**
+```json
+{
+  "status": "success",
+  "employee": { ... },
+  "cvUrl": "/cvs/filename.pdf",
+  "matches": []
+}
+```
+
+---
+
+## Core Modules
+
+### RFP Analysis Agent (`rfp_agent/`)
+
+The core intelligence engine. Analyzes RFP/RFQ documents and extracts structured data.
+
+**How it works:**
+1. **Document Loading** — Supports PDF (via pdfplumber or Gemini Files API for scanned docs), DOCX (python-docx), and plain text
+2. **Chunking** — For documents exceeding ~700K characters, splits into overlapping paragraph-boundary chunks
+3. **Parallel Analysis** — Sends 3 parallel Gemini calls (Part A: metadata + requirements, Part B: skills + deadlines, Part C: risks + compliance) for faster processing
+4. **Merge & Deduplicate** — Combines results, deduplicates requirements, renumbers IDs
+5. **Structured Output** — Returns a fully validated `RFPAnalysis` Pydantic model
+
+**Key files:**
+- `rfp_agent/agent.py` — `RFPAnalysisAgent` class with `analyze_file()` and `to_planning_agent_payload()`
+- `rfp_agent/models.py` — Pydantic models (`RFPAnalysis`, `Requirement`, `SkillRequirement`, etc.)
+- `rfp_agent/prompts.py` — System, analysis, and merge prompts for Gemini
+- `rfp_agent/document_loader.py` — Multi-format document loading with fallbacks
+
+---
+
+### Matchmaking Agent
+
+Ranks employees against extracted requirements using Gemini's reasoning capabilities.
+
+**How it works:**
+1. Receives requirements list + employee pool + optional human clarification
+2. Sends to Gemini for semantic matching (skills, experience, certifications)
+3. Returns ranked list with match scores (0-100) and reasoning
+
+---
+
+### CV Extraction
+
+Extracts structured `CandidateProfile` data from uploaded CV PDFs using Gemini.
+
+**Extracted fields:** name, email, location, role, level, years of experience, industry experience, skills, certifications, LinkedIn URL.
+
+---
+
+### Onboarding Agent (`onboarding_agent/`)
+
+Automated pipeline for bulk CV ingestion from Google Drive into a CRM spreadsheet.
+
+**Flow:**
+1. Authenticates with Google APIs (Drive + Sheets)
+2. Lists PDFs in a configured Google Drive "dropzone" folder
+3. Downloads and parses each CV with Gemini
+4. Appends structured data rows to a Google Sheets CRM
+5. Moves processed files to an archive folder
+6. Continues on per-file failures without stopping
+
+**Key files:**
+- `onboarding_agent/main.py` — Pipeline orchestration
+- `onboarding_agent/services/extractor.py` — Gemini-powered CV parsing
+- `onboarding_agent/services/google_api.py` — Google Drive/Sheets client
+
+---
+
+### Outreach & Notifications
+
+Sends push notifications to team members via [ntfy.sh](https://ntfy.sh) — a simple HTTP-based pub/sub notification service. No signup required.
+
+---
+
+## Data Models
+
+### RFPAnalysis (full output)
 
 ```
 RFPAnalysis
@@ -289,101 +515,206 @@ RFPAnalysis
 ├── rfp_summary             string          — 2-3 sentence executive summary
 ├── project_scope           string          — detailed scope of work
 ├── submission_deadline     string | null
-├── project_duration        string | null   — e.g. "18 months"
+├── project_duration        string | null
 ├── estimated_team_size     string | null
 ├── budget_constraints      string | null
-│
 ├── requirements[]          Requirement
-│   ├── id                  string          — REQ-001, REQ-002, ...
-│   ├── category            string          — functional | technical | operational | compliance | financial | resource
+│   ├── id                  REQ-001, REQ-002, ...
+│   ├── category            functional | technical | operational | compliance | financial | resource
 │   ├── title               string
 │   ├── description         string
-│   ├── priority            string          — high | medium | low
-│   ├── is_mandatory        bool            — "must/shall" vs "should/may"
+│   ├── priority            high | medium | low
+│   ├── is_mandatory        bool
 │   ├── skills_needed       string[]
 │   └── section_reference   string | null
-│
-├── skills_required[]       SkillRequirement  ← PRIMARY PLANNING AGENT INPUT
-│   ├── skill               string
-│   ├── category            string
-│   ├── proficiency_level   string
+├── skills_required[]       SkillRequirement
+│   ├── skill               string (granular, e.g. "OCPP 2.0.1" not "EV charging")
+│   ├── category            technical | domain | certification | soft_skill | language
+│   ├── proficiency_level   junior | mid | senior | expert
 │   ├── quantity_needed     int
 │   ├── context             string
 │   └── related_requirement_ids  string[]
-│
 ├── deadlines[]             Deadline
-│   ├── date                string | null
-│   ├── milestone           string
-│   ├── description         string
-│   ├── criticality         string
-│   └── consequences        string | null
-│
 ├── dependencies[]          Dependency
-│   ├── type                string          — internal | external
-│   ├── name                string
-│   ├── category            string          — supplier | partner | regulatory_body | internal_team | technology | certification_body
-│   ├── description         string
-│   ├── criticality         string
-│   └── notes               string | null
-│
 ├── risks[]                 Risk
-│   ├── title               string
-│   ├── description         string
-│   ├── impact              string          — high | medium | low
-│   ├── category            string          — technical | legal | financial | operational | timeline | compliance | resource
-│   └── mitigation_suggestion  string | null
-│
 ├── compliance_norms[]      ComplianceNorm
-│   ├── name                string
-│   ├── description         string
-│   ├── mandatory           bool
-│   └── certification_required  bool
-│
-├── key_evaluation_criteria string[]        — how the client scores proposals
-├── pitfalls                string[]        — gotchas, ambiguities, unusual clauses
-├── analysis_notes          string[]        — analyst observations, areas needing clarification
-└── confidence_score        float           — 0.0–1.0 completeness confidence
+├── key_evaluation_criteria string[]
+├── pitfalls                string[]
+├── analysis_notes          string[]
+└── confidence_score        float (0.0–1.0)
+```
+
+### Planning Payload (slim handoff)
+
+A lightweight subset of `RFPAnalysis` optimized for downstream agent consumption:
+
+```json
+{
+  "rfp_title": "...",
+  "client_name": "...",
+  "submission_deadline": "...",
+  "project_duration": "...",
+  "estimated_team_size": "...",
+  "skills_required": [...],
+  "high_priority_requirements": [...],
+  "dependencies": [...],
+  "compliance_norms": [...]
+}
+```
+
+### Project States
+
+| State | Description |
+|-------|-------------|
+| `INGESTION` | Documents uploaded, awaiting analysis |
+| `ANALYSIS` | RFP analyzed, clarification question generated |
+| `PLANNING` | Employees matched, PM selected |
+| `OUTREACH` | Notifications sent to team |
+
+### CandidateProfile / Employee
+
+```json
+{
+  "firstName": "string",
+  "lastName": "string",
+  "email": "string",
+  "location": "string",
+  "role": "string",
+  "level": "junior | mid | senior | expert",
+  "yearsOfExperience": "number",
+  "pastIndustryExperience": ["string"],
+  "skills": ["string"],
+  "certifications": ["string"],
+  "linkedin": "string | null"
+}
 ```
 
 ---
 
-## Internal architecture (RFP agent)
+## CLI Usage
 
-```
-RFP File (PDF / DOCX / TXT)
-   │
-   ▼
-Document Loader
-   ├── PDF  → Gemini Files API (native, preserves layout/tables)
-   │          → pdfplumber fallback (text extraction)
-   ├── DOCX → python-docx
-   └── TXT  → direct read
-   │
-   ▼
-Chunker  (only if document > ~700K chars)
-   └── Overlapping paragraph-boundary chunks → merge pass
-   │
-   ▼
-Gemini 2.5 Flash
-   └── Structured output constrained to RFPAnalysis JSON schema
-   │
-   ▼
-RFPAnalysis (Pydantic model, fully validated)
-   └── to_planning_agent_payload() → slim dict for Planning Agent
+Run the agent directly from the terminal without the web UI:
+
+```bash
+# Single document
+python3 main.py rfp.pdf
+
+# Multiple documents
+python3 main.py rfp1.pdf rfp2.docx rfp3.pdf
+
+# Save results to files
+python3 main.py rfp1.pdf rfp2.pdf --output-dir results/ --planning-dir planning/
+# Produces:
+#   results/rfp1.json             — full analysis
+#   results/rfp2.json
+#   planning/rfp1_planning.json   — slim payload for downstream agents
+#   planning/rfp2_planning.json
 ```
 
-## File structure
+---
+
+## Project Structure
 
 ```
-munich-hackathon/
-├── rfp_agent/
-│   ├── __init__.py
-│   ├── agent.py          — RFPAnalysisAgent class
-│   ├── models.py         — Pydantic models (RFPAnalysis, Requirement, etc.)
-│   ├── prompts.py        — System, analysis, and merge prompts
-│   └── document_loader.py — PDF/DOCX/TXT loading
-├── server.py             — FastAPI server (port 8000)
-├── src/lib/gemini.ts     — Next.js → FastAPI bridge
-├── requirements.txt
-└── .env                  — GEMINI_API_KEY (never committed)
+web/
+├── server.py                    — FastAPI backend (port 8000)
+├── main.py                      — CLI entry point for batch processing
+├── requirements.txt             — Python dependencies
+├── package.json                 — Node.js dependencies
+├── next.config.ts               — Next.js configuration
+├── tsconfig.json                — TypeScript configuration
+├── eslint.config.mjs            — ESLint configuration
+├── postcss.config.mjs           — PostCSS/Tailwind configuration
+│
+├── rfp_agent/                   — Core RFP analysis engine
+│   ├── __init__.py              — Package exports (RFPAnalysisAgent)
+│   ├── agent.py                 — RFPAnalysisAgent class
+│   ├── models.py                — Pydantic data models
+│   ├── prompts.py               — Gemini prompt templates
+│   └── document_loader.py       — PDF/DOCX/TXT loader with fallbacks
+│
+├── onboarding_agent/            — Google Drive → Sheets CV pipeline
+│   ├── main.py                  — Pipeline orchestration
+│   ├── config.py                — Environment configuration
+│   ├── models.py                — CandidateProfile schema
+│   ├── requirements.txt         — Additional Python deps
+│   └── services/
+│       ├── extractor.py         — Gemini CV extraction
+│       └── google_api.py        — Google Drive/Sheets client
+│
+├── src/
+│   ├── app/
+│   │   ├── page.tsx             — Main UI (upload, analysis, matching)
+│   │   ├── layout.tsx           — Root layout
+│   │   ├── globals.css          — Global styles
+│   │   └── api/
+│   │       ├── process-rfq/     — RFP ingestion orchestrator
+│   │       ├── matchmaking/     — Employee matching + PM selection
+│   │       ├── outreach/        — ntfy.sh notification sender
+│   │       └── employees/       — Employee CRUD + CV extraction
+│   │           ├── route.ts     — GET all employees
+│   │           ├── [id]/route.ts— POST upsert employee
+│   │           └── extract/route.ts — POST CV upload + extraction
+│   └── lib/
+│       ├── gemini.ts            — Frontend → FastAPI bridge
+│       └── storage.ts           — Local JSON persistence layer
+│
+├── data/
+│   ├── employees.json           — Employee database
+│   └── projects.json            — Project state store
+│
+└── public/
+    └── cvs/                     — Uploaded CV file storage
 ```
+
+---
+
+## Dependencies Reference
+
+### Python (requirements.txt)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| fastapi | ≥ 0.111.0 | HTTP API framework |
+| uvicorn | ≥ 0.29.0 | ASGI server |
+| python-multipart | ≥ 0.0.9 | File upload handling |
+| google-genai | ≥ 1.0.0 | Google Gemini AI SDK |
+| pydantic | ≥ 2.0.0 | Data validation and schemas |
+| pdfplumber | ≥ 0.10.0 | PDF text extraction |
+| python-docx | ≥ 1.1.0 | DOCX document parsing |
+| python-dotenv | ≥ 1.0.0 | Environment variable loading |
+| rich | ≥ 13.0.0 | Terminal formatting (CLI mode) |
+| typer | ≥ 0.12.0 | CLI argument parsing |
+
+### Python — Onboarding Agent (onboarding_agent/requirements.txt)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| google-generativeai | ≥ 0.7.0 | Gemini for CV extraction |
+| google-auth | ≥ 2.30.0 | Google API authentication |
+| google-auth-oauthlib | ≥ 1.2.0 | OAuth2 flow |
+| google-api-python-client | ≥ 2.130.0 | Google Drive/Sheets SDK |
+| cryptography | 42.0.8 | Auth token handling |
+| pydantic | ≥ 2.7.0 | Schema validation |
+| python-dotenv | ≥ 1.0.1 | Environment variables |
+
+### Node.js (package.json)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| next | 16.2.9 | React framework (App Router) |
+| react | 19.2.4 | UI library |
+| react-dom | 19.2.4 | React DOM renderer |
+| framer-motion | 12.40.0 | Animation library |
+| @google/generative-ai | 0.24.1 | Gemini client (frontend utilities) |
+| lodash | 4.18.1 | Utility functions |
+| uuid | 14.0.0 | Unique ID generation |
+| typescript | 5.x | Type safety |
+| tailwindcss | 4.x | Utility-first CSS |
+| eslint | 9.x | Code linting |
+
+---
+
+## License
+
+This project was built for the Tacto Hackathon 2025.
