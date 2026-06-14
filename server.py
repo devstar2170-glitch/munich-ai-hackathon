@@ -211,6 +211,67 @@ async def analyze_rfq_multi(files: List[UploadFile] = File(...)):
     }
 
 
+class ProfileGap(BaseModel):
+    field: str
+    question: str
+    options: list[str] | None = None
+    reasoning: str
+
+
+class ProfileGapsResponse(BaseModel):
+    gaps: list[ProfileGap]
+
+
+@app.post("/api/profile-gaps")
+async def profile_gaps(employee: dict):
+    """Identify missing or inconsistent fields on an employee profile and
+    generate targeted questions a recruiter can answer to fill them in."""
+    from google import genai
+    from google.genai import types
+    import os
+
+    key = os.getenv("GEMINI_API_KEY", "")
+    if not key:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
+
+    prompt = f"""
+You are reviewing an employee profile for completeness before it is used for
+project staffing and matchmaking.
+
+Profile:
+{json.dumps(employee, indent=2, ensure_ascii=False)}
+
+Identify up to 5 fields that are missing, empty, or inconsistent (e.g. high
+years of experience but no seniority level set). For each one, write a short
+question a recruiter could answer to fill the gap. If the field has a small
+set of natural choices (e.g. "level", "availabilityStatus"), provide those as
+"options". Prioritize fields most useful for staffing decisions: skills,
+level, yearsOfExperience, availabilityStatus, role, location, before less
+critical ones like linkedin or certifications.
+
+Only include fields that are genuinely missing or inconsistent — do not
+invent questions for fields that are already filled in reasonably.
+"""
+
+    client = genai.Client(api_key=key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=ProfileGapsResponse,
+            temperature=0.1,
+        ),
+    )
+
+    try:
+        data = json.loads(response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse profile gaps response: {e}")
+
+    return data
+
+
 class MatchRequest(BaseModel):
     requirements: list[str]
     employees: list[dict]

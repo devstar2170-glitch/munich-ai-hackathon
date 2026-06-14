@@ -31,3 +31,19 @@ class CandidateProfile(BaseModel):
     skills: List[str] = Field(default_factory=list, description="Technical and soft skills")
     certifications: List[str] = Field(default_factory=list, description="Certifications held")
     linkedin: Optional[str] = Field(default=None, description="LinkedIn profile URL")
+
+
+class SupplementField(BaseModel):
+    field: str = Field(description="Employee profile field name this value applies to")
+    value: str = Field(
+        description="Extracted value for the field, as a string. For list fields, comma-separate the items."
+    )
+    confidence: float = Field(description="Confidence 0-100 that this value is correct and ready to apply")
+    reasoning: str = Field(description="Brief justification for the value and confidence score")
+
+
+class SupplementExtraction(BaseModel):
+    fields: List[SupplementField] = Field(
+        default_factory=list,
+        description="One entry per gap field the document provides new information for",
+    )

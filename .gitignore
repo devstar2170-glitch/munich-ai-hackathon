@@ -30,3 +30,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .vercel
+
+# Runtime-uploaded CV files
+public/cvs/
