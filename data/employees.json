@@ -223,5 +223,24 @@
     "projectEnd": "2025-12-31",
     "cv": "",
     "linkedin": "https://linkedin.com/in/georgmueller"
+  },
+  {
+    "id": "f8686831-0818-4ffe-8f1e-e39a350ad976",
+    "email": "",
+    "firstName": "",
+    "lastName": "",
+    "location": "",
+    "role": "",
+    "level": "",
+    "yearsOfExperience": 0,
+    "pastIndustryExperience": [],
+    "futureIndustryWish": [],
+    "skills": [],
+    "certifications": [],
+    "availabilityStatus": "Available",
+    "projectStart": "",
+    "projectEnd": "",
+    "cv": "/cvs/bbeccd4d-f83e-427a-87b8-4aa8f302eb51.pdf",
+    "linkedin": ""
   }
 ]
